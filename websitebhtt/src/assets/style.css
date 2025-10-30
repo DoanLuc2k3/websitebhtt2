@@ -638,7 +638,7 @@ p {
   height: auto;
 }
 .login-page {
-    background-image: url("F:\websitebhtt\websitebhtt\src\assets\images\profile-banner2.png");
+    background-image: url("../assets/images/profile-banner2.png");
   background-size: cover; /* Ảnh phủ kín toàn bộ */
   background-position: center; /* Căn giữa ảnh */
   background-repeat: no-repeat; /* Không lặp lại ảnh */

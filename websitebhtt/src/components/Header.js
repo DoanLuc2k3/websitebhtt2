@@ -82,7 +82,7 @@ const AppHeader = () => {
     >
       <div className="header-logo" onClick={() => navigate("/")}>
         <img src={logo} alt="Logo" />
-        <Title level={4}>L-M Fashion</Title>
+        {/* <Title level={4}>L-M Fashion</Title> */}
       </div>
       <Menu mode="horizontal" items={menuItems} />
       <div className="header-right">

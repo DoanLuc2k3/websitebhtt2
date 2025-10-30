@@ -3,10 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import "./App.css";
 import "./i18n";
 import "antd/dist/reset.css"; // cần cho Ant Design v5
-// import "../src/components/Header";
-// import "../src/components/Footer";
-import AppHeader from "./components/AppHeader";
-import AppFooter from "./components/AppFooter";
+
 // 🏠 --- USER COMPONENTS ---
 import Header from "./components/Header";
 import Footer from "./components/Footer";
@@ -14,17 +11,13 @@ import ChatBubble from "./components/ChatBubble";
 import Banner from "./components/Banner";
 
 // 🧩 --- ADMIN COMPONENTS ---
+import AppHeader from "./components/AppHeader";
+import AppFooter from "./components/AppFooter"; // Cần cho AdminLayout
 import PageContent from "./components/PageContent";
 import SideMenu from "./components/SideMenu";
-import Customers from "./pages/Customers";
-import Dashbaord from "./pages/Dashbaord";
-import Inventory from "./pages/Inventory";
-import Orders from "./pages/Orders";
-import Help  from "./pages/Help";
-import Staffs from "./pages/Staffs";
-import Promotion from "./pages/Promotion";
 
 // 🏠 --- USER PAGES ---
+// (Các import này là cần thiết cho UserLayout)
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -38,6 +31,9 @@ import ProductDetail from "./pages/ProductDetail";
 import Product from "./pages/Product";
 import ShoppingCart from "./pages/ShoppingCart";
 import ReviewOrder from "./pages/ReviewOrder";
+
+// (Các import trang Admin như Inventory, Orders... đã được xóa 
+// vì chúng chỉ được gọi bên trong AppRoutes.js, không cần ở đây)
 
 const DARK_MODE_KEY = "app_dark_mode";
 
@@ -65,6 +61,7 @@ function UserLayout() {
         <Route path="/product" element={<Product />} />
         <Route path="/shoppingcart" element={<ShoppingCart />} />
         <Route path="/revieworder" element={<ReviewOrder />} />
+        {/* Bạn có thể thêm một route 404 cho User ở đây */}
       </Routes>
       <ChatBubble />
       <Footer />
@@ -105,13 +102,13 @@ function AdminLayout() {
         />
         <PageContent />
       </div>
-      <AppFooter />
+      <AppFooter /> {/* AppFooter được gọi BÊN TRONG AdminLayout là đúng */}
       {isSideMenuOpen && <div className="menu-overlay" onClick={toggleSideMenu} />}
     </div>
   );
 }
 
-// ========== APP CHÍNH ==========
+// ========== APP CHÍNH (ĐÃ SỬA) ==========
 function App() {
   return (
     <Suspense
@@ -123,22 +120,23 @@ function App() {
     >
       <BrowserRouter>
         <Routes>
-          {/* User layout hiển thị đầu tiên */}
+          {/* 1. Đặt route Admin (cụ thể) lên trước 
+            Tất cả các URL bắt đầu bằng /admin/ SẼ khớp với route này
+          */}
+          <Route path="/admin/*" element={<AdminLayout />} />
+
+          {/* 2. Đặt route User (bắt tất cả) ở cuối cùng
+            Bất kỳ URL nào KHÔNG KHỚP với /admin/* sẽ khớp với route này
+          */}
           <Route path="/*" element={<UserLayout />} />
 
-          {/* Admin layout riêng biệt */}
-          <Route path="/admin/*" element={<AdminLayout />} />
-          
-          
-          <Route path="/inventory" element={<Inventory />}></Route>
-                <Route path="/orders" element={<Orders />}></Route>
-                <Route path="/customers" element={<Customers />}></Route>
-                <Route path="/help" element={<Help />}></Route>
-                <Route path="/staffs" element={<Staffs />}></Route>
-                <Route path="/promotion" element={<Promotion />}></Route>
-                <Route path="/dashboard" element={<Dashbaord />}></Route>
+          {/* Tất cả các route Admin bị lặp (/inventory, /orders...)
+            đã được XÓA KHỎI ĐÂY.
+          */}
         </Routes>
-        <AppFooter/>
+        {/* <AppFooter/> đã được XÓA KHỎI ĐÂY 
+          vì nó đã nằm trong AdminLayout
+        */}
       </BrowserRouter>
     </Suspense>
   );

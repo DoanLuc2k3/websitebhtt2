@@ -60,39 +60,34 @@ function SideMenu() {
                     {
                         label: t("overview"),
                         icon: <AppstoreOutlined style={{color: "green"}}/>,
-                        key: "/",
+                        key: "/admin",
                     },
                     {
                         label: t("inventory"),
-                        key: "/inventory",
+                        key: "/admin/inventory",
                         icon: <ShopOutlined style={{ color: "#fa8c16" }} />, 
                     },
                     {
                         label: t("orders"),
-                        key: "/orders",
+                        key: "/admin/orders",
                         icon: <ShoppingCartOutlined style={{color: "red"}}/>,
                     },
                     {
                         label: t("staffs"),
-                        key: "/staffs",
+                        key: "/admin/staffs",
                         icon: <TeamOutlined style={{ color: "Teal" }} />,
                     },
                     {
                         label: t("customers"),
-                        key: "/customers",
+                        key: "/admin/customers",
                         icon: <UserOutlined style={{color : "#f7bc0cff"}}/>,
                     },
                     {
                         label: t("marketing"),
-                        key: "/promotion",
+                        key: "/admin/promotion",
                         icon: <TagOutlined style={{color : "Maroon"}}/>,
                     },
-                    {
-                        label: t("help"),
-                        key: "/help",
-                        icon: <QuestionCircleOutlined style={{color: "blue"}}/>,
-                        style: { marginTop: 'auto' } 
-                    },
+                  
                 ]}
             />
         </div>

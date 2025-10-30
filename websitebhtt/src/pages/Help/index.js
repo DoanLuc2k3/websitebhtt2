@@ -28,14 +28,14 @@ import {
     SearchOutlined, 
     ToolOutlined, 
 } from "@ant-design/icons";
-import { useTranslation } from "react-i18next"; //  IMPORT useTranslation
+// import { useTranslation } from "react-i18next"; // Giữ code gốc
 
 const { Title, Paragraph, Text } = Typography;
 const { TextArea, Search } = Input;
 const { Option } = Select;
 
 const SupportDashboard = () => {
-    const { t } = useTranslation(); //  Dùng hook dịch
+    // const { t } = useTranslation(); // Giữ code gốc
 
     const [diagnosisId, setDiagnosisId] = useState("");
     const [form] = Form.useForm();
@@ -46,288 +46,284 @@ const SupportDashboard = () => {
 
     // Dữ liệu trạng thái hệ thống (Sử dụng key trạng thái: active, maintenance)
     const [services] = useState([
-        { name: t("help_service_api"), status_key: "active", color: "green", icon: <ApiOutlined /> },
-        { name: t("help_service_db"), status_key: "active", color: "green", icon: <DatabaseOutlined /> },
-        { name: t("help_service_server"), status_key: "maintenance", color: "gold", icon: <CloudOutlined /> },
+        { id: 'api', name: "Service API", status: 'active', icon: <ApiOutlined /> },
+        { id: 'db', name: "Database", status: 'active', icon: <DatabaseOutlined /> },
+        { id: 'cdn', name: "CDN & Assets", status: 'maintenance', icon: <CloudOutlined /> },
+        { id: 'auth', name: "Authentication", status: 'active', icon: <InfoCircleOutlined /> },
     ]);
 
-    // Dữ liệu hướng dẫn nhanh (FAQ)
-    const quickHelps = [
-        { title: t("help_faq_title_add"), description: t("help_faq_desc_add") },
-        { title: t("help_faq_title_order"), description: t("help_faq_desc_order") },
-        { title: t("help_faq_title_report"), description: t("help_faq_desc_report") },
+    // Dữ liệu câu hỏi thường gặp
+    const faqData = [
+        {
+            title: "How do I reset my password?",
+            content: "You can reset your password by clicking 'Forgot Password' on the login page. An email will be sent with instructions.",
+        },
+        {
+            title: "Where can I find my order history?",
+            content: "Your complete order history is available in the 'Orders' section of your account profile.",
+        },
+        {
+            title: "What is the return policy?",
+            content: "We accept returns within 30 days of purchase, provided the items are in their original condition.",
+        },
     ];
 
-    // Dữ liệu cập nhật hệ thống
-    const [updates] = useState([
-        {
-            version: "v2.1.0",
-            date: "20/10/2025",
-            changes: t("help_update_changes_1"), //  Dịch
-        },
-        {
-            version: "v2.0.5",
-            date: "12/10/2025",
-            changes: t("help_update_changes_2"), //  Dịch
-        },
-        {
-            version: "v2.0.0",
-            date: "11/10/2025",
-            changes: t("help_update_changes_3"), //  Dịch
-        },
-    ]);
-
-
-    // Logic chạy chẩn đoán
-    const handleRunDiagnosis = () => {
-        if (!diagnosisId) {
-            message.warning(t("help_msg_enter_id")); //  Dịch
-            return;
-        }
-        // Thực tế: gọi API chẩn đoán tại đây
-        message.loading({ content: t('help_msg_diag_running', { id: diagnosisId }), key: 'diag' }); // Dịch
+    // Xử lý gửi ticket
+    const onFinish = (values) => {
+        message.loading({ content: "Submitting ticket...", key: 'ticket' });
         setTimeout(() => {
-            message.success({ 
-                content: t('help_msg_diag_complete', { id: diagnosisId }), //  Dịch
-                key: 'diag', 
-                duration: 3 
-            });
-            setDiagnosisId("");
+            console.log("Ticket submitted:", values);
+            message.success({ content: "Support ticket submitted successfully!", key: 'ticket', duration: 2 });
+            form.resetFields();
         }, 1500);
     };
 
-    // Form gửi phản hồi
-    const onFinish = (values) => {
-        console.log(values);
-        message.success(t("help_msg_feedback_success")); //  Dịch
-        form.resetFields();
+    // Xử lý chẩn đoán
+    const handleDiagnosis = (value) => {
+        if (!value) {
+            message.error("Please enter an Order ID or Tracking ID.");
+            return;
+        }
+        setDiagnosisId(value);
+        message.loading({ content: `Running diagnostics for ${value}...`, key: 'diag' });
+        setTimeout(() => {
+            message.success({ content: "Diagnostics complete. No issues found.", key: 'diag', duration: 2 });
+        }, 2000);
     };
 
-    // Hàm tạo Card chung với style đồng bộ
-    const StyledCard = ({ titleKey, icon, children, style = {} }) => ( //  Dùng key
-        <Card 
-            title={
-                <Space style={{ color: PRIMARY_PURPLE }}>
-                    {React.cloneElement(icon, { style: { color: PRIMARY_PURPLE, fontSize: 18 } })}
-                    <Text strong style={{ color: PRIMARY_PURPLE }}>{t(titleKey)}</Text> {/*  Dịch */}
-                </Space>
-            } 
-            bordered={false} 
-            style={{ 
-                borderRadius: 12, 
-                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                ...style
-            }}
-        >
-            {children}
-        </Card>
-    );
+    // Render tag trạng thái
+    const renderStatusTag = (status) => {
+        if (status === 'active') {
+            return <Tag color="green" icon={<SyncOutlined spin />}>Active</Tag>;
+        }
+        if (status === 'maintenance') {
+            return <Tag color="orange" icon={<ToolOutlined />}>Maintenance</Tag>;
+        }
+        return <Tag color="red">Down</Tag>;
+    };
 
     return (
-        <div style={{ padding: 24, background: '#f5f7fa', minHeight: '100vh' }}>
-            
-            {/* --- TIÊU ĐỀ CHÍNH --- */}
-            <Title level={3} style={{ marginBottom: 10, display: 'flex', alignItems: 'center' }}>
-                <div 
-                    style={{
-                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                        backgroundColor: '#e6f4ff', borderRadius: '50%', padding: '8px', 
-                        marginRight: 10,
-                    }}
-                >
-                    <InfoCircleOutlined style={{ color: PRIMARY_BLUE, fontSize: '20px' }} />
-                </div>
-                {t("help_title")} {/*  Dịch */}
+        /* * ĐÃ XÓA DIV BỌC NGOÀI CÓ PADDING
+         * .PageContent (từ App.css) sẽ tự động thêm padding: 24px
+         */
+        <>
+            <Title level={3} style={{ margin: 0, paddingBottom: 16 }}>
+                Help & Support Center
             </Title>
-            <Paragraph type="secondary" style={{ marginBottom: 30 }}>
-                {t("help_subtitle")} {/*  Dịch */}
-            </Paragraph>
 
+            {/* BỐ CỤC MẪU MỚI: 1 HÀNG, 2 CỘT */}
             <Row gutter={[24, 24]}>
                 
-                {/* --- CỘT TRÁI (Tools & Status) --- */}
-                <Col xs={24} lg={12}>
+                {/* === CỘT BÊN TRÁI (Ticket & FAQ) === */}
+                <Col xs={24} lg={14}>
+                    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                        
+                        {/* CARD 1: Gửi ticket */}
+                        <Card 
+                            title="Submit a Support Ticket" 
+                            bordered={false} 
+                            /* * KHÔNG CÓ height: 100% */
+                            style={{ borderRadius: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.05)", width: '100%' }}
+                            headStyle={{ borderBottom: 0, fontWeight: 600 }}
+                            extra={<MessageOutlined style={{ color: PRIMARY_BLUE }} />}
+                        >
+                            <Form form={form} layout="vertical" onFinish={onFinish}>
+                                <Row gutter={16}>
+                                    <Col span={12}>
+                                        <Form.Item
+                                            name="category"
+                                            label="Category"
+                                            rules={[{ required: true, message: "Please select a category." }]}
+                                        >
+                                            <Select placeholder="Select a category">
+                                                <Option value="tech">Technical Issue</Option>
+                                                <Option value="billing">Billing & Payments</Option>
+                                                <Option value="general">General Inquiry</Option>
+                                            </Select>
+                                        </Form.Item>
+                                    </Col>
+                                    <Col span={12}>
+                                         <Form.Item
+                                            name="priority"
+                                            label="Priority"
+                                            initialValue="medium"
+                                        >
+                                            <Select>
+                                                <Option value="low">Low</Option>
+                                                <Option value="medium">Medium</Option>
+                                                <Option value="high">High</Option>
+                                            </Select>
+                                        </Form.Item>
+                                    </Col>
+                                </Row>
+                                <Form.Item
+                                    name="subject"
+                                    label="Subject"
+                                    rules={[{ required: true, message: "Please enter a subject." }]}
+                                >
+                                    <Input placeholder="Briefly describe your issue" />
+                                </Form.Item>
+                                <Form.Item
+                                    name="description"
+                                    label="Description"
+                                    rules={[{ required: true, message: "Please describe your issue." }]}
+                                >
+                                    <TextArea rows={4} placeholder="Please provide as much detail as possible..." />
+                                </Form.Item>
+                                <Form.Item>
+                                    <Button type="primary" htmlType="submit" style={{ background: PRIMARY_BLUE }}>
+                                        Submit Ticket
+                                    </Button>
+                                </Form.Item>
+                            </Form>
+                        </Card>
 
-                    {/* 1. Công cụ Chẩn đoán nhanh */}
-                    <StyledCard titleKey="help_card_diagnosis" icon={<ToolOutlined />}>
-                        <Space direction="vertical" style={{ width: '100%' }}>
-                            <Text type="secondary">{t("help_text_enter_id")}</Text> {/*  Dịch */}
-                            <Input.Group compact>
-                                <Input
-                                    style={{ width: 'calc(100% - 100px)' }}
-                                    placeholder={t("help_input_placeholder")} //  Dịch
-                                    prefix={<SearchOutlined />}
-                                    value={diagnosisId}
-                                    onChange={(e) => setDiagnosisId(e.target.value)}
-                                />
-                                <Button type="primary" onClick={handleRunDiagnosis} style={{ width: 100 }}>
-                                    {t("help_btn_run")} {/*  Dịch */}
-                                </Button>
-                            </Input.Group>
-                        </Space>
-                    </StyledCard>
-                    
-                    <Divider />
-
-                    {/* 2. Trạng thái hệ thống */}
-                    <StyledCard titleKey="help_status_title" icon={<ApiOutlined />}>
-                        <List
-                            dataSource={services}
-                            renderItem={(item) => (
-                                <List.Item>
-                                    <Space>
-                                        {item.icon}
-                                        <Text strong>{item.name}</Text>
-                                    </Space>
-                                    <Tag color={item.color} style={{ fontWeight: 600 }}>
-                                        {t(`help_status_${item.status_key}`)} {/*  Dịch */}
-                                    </Tag>
-                                </List.Item>
-                            )}
-                        />
-                    </StyledCard>
-
-                    {/* 3. Cập nhật hệ thống */}
-                    <Card
-                        title={<Space style={{ color: PRIMARY_PURPLE }}><SyncOutlined style={{ color: PRIMARY_PURPLE, fontSize: 18 }} /> <Text strong style={{ color: PRIMARY_PURPLE }}>{t("help_log_title")}</Text></Space>}
-                        style={{ marginTop: 24, borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
-                        bordered={false}
-                    >
-                        <Timeline
-                            items={updates.map((u, index) => ({
-                                color: index === 0 ? "green" : "blue",
-                                children: (
-                                    <div>
-                                        <Text strong>{u.version}</Text> – <Text type="secondary">{u.date}</Text>
-                                        <Paragraph style={{ margin: 0 }}>{u.changes}</Paragraph>
-                                    </div>
-                                ),
-                            }))}
-                        />
-                    </Card>
+                        {/* CARD 2: FAQ */}
+                        <Card 
+                            title="Frequently Asked Questions (FAQ)" 
+                            bordered={false} 
+                            style={{ borderRadius: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.05)", width: '100%' }}
+                            headStyle={{ borderBottom: 0, fontWeight: 600 }}
+                            extra={<QuestionCircleOutlined style={{ color: PRIMARY_PURPLE }} />}
+                        >
+                            <List
+                                itemLayout="vertical"
+                                dataSource={faqData}
+                                renderItem={item => (
+                                    <List.Item style={{ borderBottom: '1px solid #f0f0f0', padding: '12px 0' }}>
+                                        <Text strong>{item.title}</Text>
+                                        <Paragraph type="secondary" style={{ margin: 0 }}>
+                                            {item.content}
+                                        </Paragraph>
+                                    </List.Item>
+                                )}
+                            />
+                        </Card>
+                    </Space>
                 </Col>
 
-                {/* --- CỘT PHẢI (Help & Contact) --- */}
-                <Col xs={24} lg={12}>
+                {/* === CỘT BÊN PHẢI (Status, Diag, Contact) === */}
+                <Col xs={24} lg={10}>
+                    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+
+                        {/* CARD 1: Trạng thái hệ thống */}
+                        <Card 
+                            title="System Status" 
+                            bordered={false} 
+                            /* * KHÔNG CÓ height: 100% */
+                            style={{ borderRadius: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.05)", width: '100%' }}
+                            headStyle={{ borderBottom: 0, fontWeight: 600, color: PRIMARY_BLUE }}
+                        >
+                            <List
+                                dataSource={services}
+                                renderItem={(item) => (
+                                    <List.Item style={{ borderBottom: '1px solid #f0f0f0', padding: '12px 0' }}>
+                                        <List.Item.Meta
+                                            avatar={<span style={{ fontSize: 20, color: item.status === 'active' ? PRIMARY_BLUE : '#faad14' }}>{item.icon}</span>}
+                                            title={<Text strong>{item.name}</Text>}
+                                        />
+                                        {renderStatusTag(item.status)}
+                                    </List.Item>
+                                )}
+                                footer={
+                                    <div style={{ textAlign: 'center', paddingTop: 12 }}>
+                                        <Text type="secondary">All systems operational.</Text>
+                                    </div>
+                                }
+                            />
+                        </Card>
                     
-                    {/* 4. Hướng dẫn nhanh & Tìm kiếm Tài liệu */}
-                    <StyledCard titleKey="help_card_search" icon={<QuestionCircleOutlined />}>
-                        <Search 
-                            placeholder={t("help_search_placeholder")} //  Dịch
-                            enterButton={t("help_search_btn")} //  Dịch
-                            size="large"
-                            style={{ marginBottom: 16 }}
-                        />
-                        
-                        <List
-                            header={<Text strong>{t("help_faq_header")}</Text>} //  Dịch
-                            dataSource={quickHelps}
-                            renderItem={(item) => (
-                                <List.Item style={{ padding: '8px 0' }}>
-                                    <List.Item.Meta
-                                        title={<Text style={{ color: PRIMARY_BLUE }}>{item.title}</Text>}
-                                        description={<Text type="secondary">{item.description}</Text>}
-                                    />
-                                </List.Item>
+                        {/* CARD 2: Chẩn đoán nhanh */}
+                        <Card 
+                            title="Quick Diagnostics" 
+                            bordered={false} 
+                            style={{ borderRadius: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.05)", width: '100%' }}
+                            headStyle={{ borderBottom: 0, fontWeight: 600, color: PRIMARY_PURPLE }}
+                        >
+                            <Paragraph type="secondary">
+                                Enter an Order ID or Tracking ID to check its status.
+                            </Paragraph>
+                            <Search
+                                placeholder="e.g., #12345 or T-98765"
+                                enterButton={<Button type="primary" icon={<SearchOutlined />} style={{ background: PRIMARY_PURPLE, borderColor: PRIMARY_PURPLE }}>Run Test</Button>}
+                                onSearch={handleDiagnosis}
+                                style={{ marginTop: 8 }}
+                            />
+                            {diagnosisId && (
+                                <Timeline style={{ marginTop: 24, paddingLeft: 8 }}>
+                                    <Timeline.Item color="green">{`Started diagnostics for ${diagnosisId}`}</Timeline.Item>
+                                    <Timeline.Item color="blue" dot={<SyncOutlined spin />}>Checking payment & inventory...</Timeline.Item>
+                                </Timeline>
                             )}
-                        />
-                    </StyledCard>
-                    
-                    <Divider />
-
-                    {/* 5. Form gửi phản hồi (Ticket nội bộ) */}
-                    <StyledCard titleKey="help_card_feedback" icon={<MessageOutlined />}>
-                        <Form layout="vertical" form={form} onFinish={onFinish}>
-                            <Form.Item label={t("help_label_category")} name="category" rules={[{ required: true, message: t("help_msg_select_category") }]}> {/*  Dịch */}
-                                <Select placeholder={t("help_placeholder_select_category")}> {/*  Dịch */}
-                                    <Option value="bug">{t("help_select_bug")}</Option> {/*  Dịch */}
-                                    <Option value="feature">{t("help_select_feature")}</Option> {/*  Dịch */}
-                                    <Option value="question">{t("help_select_question")}</Option> {/*  Dịch */}
-                                </Select>
-                            </Form.Item>
-                            
-                            <Form.Item label={t("help_label_name")} name="name" rules={[{ required: true, message: t("help_msg_enter_name") }]}> {/*  Dịch */}
-                                <Input placeholder={t("help_placeholder_your_name")} /> {/*  Dịch */}
-                            </Form.Item>
-                            
-                            <Form.Item label={t("help_label_content")} name="feedback" rules={[{ required: true, message: t("help_msg_enter_feedback") }]}> {/*  Dịch */}
-                                <TextArea rows={3} placeholder={t("help_feedback_placeholder")} /> {/*  Dịch */}
-                            </Form.Item>
-                            
-                            <Button type="primary" htmlType="submit" block>
-                                {t("help_btn_submit")} {/*  Dịch */}
-                            </Button>
-                        </Form>
-                    </StyledCard>
-                    
-                    <Divider />
-
-                    {/* 6. Liên hệ kỹ thuật */}
-                    <Card
-                        title={
-                            <Space style={{ color: PRIMARY_PURPLE }}>
-                                <PhoneOutlined style={{ color: PRIMARY_PURPLE, fontSize: 18 }} /> 
-                                <Text strong style={{ color: PRIMARY_PURPLE }}>{t("help_card_contact")}</Text> {/*  Dịch */}
-                            </Space>
-                        }
-                        style={{ marginTop: 24, borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
-                        bordered={false}
-                    >
-                        {/* Nâng cấp Bố cục: Dùng Row/Col cho Email và Hotline */}
-                        <Row gutter={[16, 16]}>
-                            {/* Thẻ Email */}
-                            <Col xs={24} sm={12}>
-                                <Card 
-                                    size="small" 
-                                    style={{ 
-                                        backgroundColor: '#f6ffed', 
-                                        borderLeft: '4px solid #52c41a', 
-                                    }}
-                                    bordered={false}
-                                >
-                                    <Paragraph style={{ margin: 0 }}>
-                                        <Text type="secondary" style={{ display: 'block' }}>{t("help_contact_email")}</Text> {/*  Dịch */}
-                                        <Text strong><MailOutlined style={{ marginRight: 6 }} /> bamin.com</Text>
-                                    </Paragraph>
-                                </Card>
-                            </Col>
-
-                            {/* Thẻ Hotline */}
-                            <Col xs={24} sm={12}>
-                                <Card 
-                                    size="small" 
-                                    style={{ 
-                                        backgroundColor: '#e6f4ff', 
-                                        borderLeft: '4px solid #1677ff', 
-                                    }}
-                                    bordered={false}
-                                >
-                                    <Paragraph style={{ margin: 0 }}>
-                                        <Text type="secondary" style={{ display: 'block' }}>{t("help_contact_hotline")}</Text> {/*  Dịch */}
-                                        <Text strong style={{ color: '#1677ff' }}><PhoneOutlined style={{ marginRight: 6 }} /> 8888 9999</Text>
-                                    </Paragraph>
-                                </Card>
-                            </Col>
-                        </Row>
+                        </Card>
                         
-                        <Divider style={{ margin: '16px 0 8px 0' }} />
+                        {/* CARD 3: Liên hệ */}
+                        <Card 
+                            title="Direct Contact" 
+                            bordered={false} 
+                            style={{ borderRadius: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.05)", width: '100%' }}
+                            headStyle={{ borderBottom: 0, fontWeight: 600 }}
+                        >
+                            <Paragraph type="secondary" style={{ marginBottom: 16 }}>
+                                If you need immediate assistance, please use:
+                            </Paragraph>
+                            <Row gutter={16}>
+                                <Col span={12}>
+                                    <Card 
+                                        hoverable 
+                                        style={{ 
+                                            textAlign: 'center', 
+                                            borderRadius: 8, 
+                                            backgroundColor: '#f6ffed', 
+                                            borderLeft: '4px solid #52c41a', 
+                                        }}
+                                        bordered={false}
+                                    >
+                                        <Paragraph style={{ margin: 0 }}>
+                                            <Text type="secondary" style={{ display: 'block' }}>Chat</Text> 
+                                            <Text strong style={{ color: '#52c41a' }}><MessageOutlined style={{ marginRight: 6 }} /> Live Chat</Text>
+                                        </Paragraph>
+                                    </Card>
+                                </Col>
+                                <Col span={12}>
+                                     <Card 
+                                        hoverable 
+                                        style={{ 
+                                            textAlign: 'center', 
+                                            borderRadius: 8, 
+                                            backgroundColor: '#e6f4ff', 
+                                            borderLeft: '4px solid #1677ff', 
+                                        }}
+                                        bordered={false}
+                                    >
+                                        <Paragraph style={{ margin: 0 }}>
+                                            <Text type="secondary" style={{ display: 'block' }}>Hotline</Text>
+                                            <Text strong style={{ color: '#1677ff' }}><PhoneOutlined style={{ marginRight: 6 }} /> 8888 9999</Text>
+                                        </Paragraph>
+                                    </Card>
+                                </Col>
+                            </Row>
+                            
+                            <Divider style={{ margin: '16px 0 8px 0' }} />
 
-                        {/* Thời gian hỗ trợ */}
-                        <Paragraph style={{ margin: 0 }}>
-                            <Text type="secondary">{t("help_contact_time")}</Text> {/*  Dịch */}
-                        </Paragraph>
-                    </Card>
+                            {/* Thời gian hỗ trợ */}
+                            <Paragraph style={{ margin: 0 }}>
+                                <Text type="secondary">Support hours: 8:00 AM - 10:00 PM (GMT+7)</Text>
+                            </Paragraph>
+                        </Card>
+                    </Space>
                 </Col>
             </Row>
 
-            {/* Footer */}
-            <Card style={{ marginTop: 32, textAlign: "center", borderRadius: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }} bordered={false}>
+            {/* Footer Card (Giữ nguyên như cũ) */}
+            <Card style={{ marginTop: 24, textAlign: "center", borderRadius: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }} bordered={false}>
                 <Text type="secondary">
                     LMSHOP ADMIN BY MIN
                 </Text>
             </Card>
-        </div>
+        </>
     );
 };
 
 export default SupportDashboard;
+

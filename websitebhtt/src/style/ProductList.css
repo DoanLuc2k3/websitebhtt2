@@ -1,0 +1,172 @@
+.product-list-container {
+  padding: 20px;
+}
+
+.flash-sale-banner {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.flash-sale-timer {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.flash-sale-timer div {
+  background-color: black;
+  color: white;
+  padding: 5px 10px;
+  height: 45px;
+  width: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+}
+
+.flash-sale-row > .ant-col > div {
+  padding: 20px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.flash-deal {
+  background-color: #87CEFA;
+  color: white;
+}
+
+.flash-deal span {
+  font-size: 12px;
+}
+
+.flash-sale-yellow {
+  background-color: #FFFF66;
+  color: #1E90FF;
+}
+
+.product-card {
+  transform: translateY(0px);
+  transition: transform 0.3s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-10px);
+}
+
+.flash-sale-title{
+   font-weight: 700 !important;        /* chữ cực dày */
+  text-align: center;      /* căn giữa */
+  letter-spacing: 1px;     /* khoảng cách giữa chữ */
+  font-family: 'Impact', 'Arial Black', sans-serif;
+}
+.flash-sale-products .ant-col > .ant-card {
+  padding: 10px;
+  text-align: center;
+}
+
+.product-card .ant-card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.product-card button {
+  font-weight: bold;
+}
+.flash-sale-products .flash-sale-card-wrapper {
+  padding: 0 8px;
+  position: relative;      /* để nhãn FLASH SALE hiển thị đúng */
+  overflow: visible;       /* cho nhãn không bị cắt khi vượt ra ngoài Card */
+  margin-right: 5px;
+}
+
+.flash-sale-label {
+    margin-right: 8px;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: red;
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  z-index: 2;
+  text-transform: uppercase;
+
+}
+.all-product-title{
+    display: inline-block;       /* div chỉ rộng vừa chữ */
+  border-bottom: 1px solid black;
+  padding-bottom: 4px;
+          /* căn giữa */
+  text-align: center;
+  margin-left: 50%;
+   transform: translateX(-50%);
+   margin-top: 20px;
+   margin-bottom: 20px;
+
+}
+/* Flash Sale Card Wrapper */
+.flash-sale-card-wrapper {
+  position: relative;
+  padding: 8px;
+}
+
+
+
+/* Nội dung dưới Meta */
+.flash-sale-card-content {
+  margin-top: 4px;
+  text-align: left;
+}
+
+/* Mô tả rút gọn */
+.flash-sale-card-description {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Giá tiền */
+.flash-sale-card-price {
+  font-weight: bold;
+  color: #1677ff;
+  margin-bottom: 4px;
+}
+
+/* Rating */
+.flash-sale-card-rating {
+  font-size: 14px;
+  color: #fadb14; /* vàng cho sao */
+}
+
+.product-card-meta {
+  text-align: left;
+}
+
+.product-price {
+  color: #1E90FF;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.product-description {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  margin-bottom: 4px;
+}
+
+.product-rating {
+  font-size: 14px;
+  color: #fadb14; /* vàng cho star */
+}
+
+

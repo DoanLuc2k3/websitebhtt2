@@ -1,0 +1,351 @@
+.ship-to-payment{
+    
+
+}
+.review-order{
+    background-color: #ece2e2;
+}
+.big-title{
+    color: #555;
+    font-size: 15px;
+    display: block;
+    text-align: center;
+    
+    
+}
+.review-order{
+    padding: 30px;
+}
+.ship-to-title{
+    margin-top: 10px;
+}
+.ship-to-div{
+    background-color: white;
+    padding: 10px;
+    margin-top: -12px;
+   height: 182px;
+}
+.location-ship{
+    color: #555;
+}
+.icon-location-ship{
+    color: green;
+    
+}
+.change-location-text{
+    color: rgb(45, 45, 247);
+    cursor: pointer;
+    margin-left: 5px;
+}
+.location-ship-div{
+    display: flex;
+    justify-content: space-between;
+}
+.detail-location{
+    display: block;
+    color: #999090;
+    margin-top: 20px;
+}
+.payment-review-div{
+        background-color: white;
+    padding: 10px;
+    margin-top: -12px;
+    
+}
+
+.payment-review-text{
+    color: rgb(45, 45, 247);
+    cursor: pointer;
+    margin-left: 5px;
+}
+.icon-payment-review{
+    color: red;
+    
+}
+/* .payment-review{
+    display: flex;
+    justify-content: space-between;
+} */
+ .payment-review-parent{
+    display: flex;
+  justify-content: flex-end;
+ }
+ .visa-title{
+    display: flex;
+    align-items: center;
+ }
+ .visa-name{
+    color: #05aa44!important;
+    font-weight: 1000 !important;
+    font-style: italic;
+ }
+ .number-visa{
+    color: #999090;
+    margin-left: 10px;
+    transform: translateY(-4px);
+ }
+ .billing-address-detail{
+    margin-left: 10px;color:#999090; ;
+ }
+ .billing-address-title{
+    color: #555 !important;
+ }
+ .icon-plus{
+   font-size: 22px;
+  
+ }
+ .apply-gift{
+    color: #555;
+    font-weight: bold;
+    margin-left: 10px;
+    font-size: 16px;
+ }
+ .add-gift{
+    display: flex;
+    justify-items: center;
+ }
+
+
+ .summary-review-div{
+            background-color: white;
+    padding: 20px;
+    margin-top: 58px;
+ }
+ .subtotal{
+    display: flex;
+    justify-content: space-between;
+ }
+ .subtotal-text{
+    font-weight: 700;
+    font-size: 15px;
+ }
+ .subtotal-value{
+    color:#999090;
+    font-weight: bold;
+    font-size: 15px;
+ }
+ .shipping{
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+ }
+ .shipping-text{
+    font-weight: bold;
+    font-size: 15px;
+ }
+ .shipping-value{
+    font-size: 15px;
+    color: #999090;
+    font-weight: bold;
+ }
+ .sales-tax{
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+ }
+ .sales-tax-text{
+      font-weight: bold;
+    font-size: 15px;
+ }
+ .sales-text-value{
+    font-size: 15px;
+    color: #999090;
+    font-weight: bold;
+ }
+ .total{
+        display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+ }
+ .total-text{
+        font-weight: bold;
+    font-size: 15px;
+ }
+ .total-value-review{
+       font-size: 15px;
+    color: #999090;
+    font-weight: bold;
+ }
+ .button-review-order{
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 10px;
+ }
+ .save-order{
+    width: 100%;
+ }
+ .cancel-order{
+    width: 100%;
+    border: 1px solid #007bff ;
+ }
+ .icon-order-detail{
+    color: orangered;
+   font-size: 25px;
+ }
+ .order-detail-review{
+    transform: translateY(-45px);
+ }
+ .order-detail-and-method-content{
+    background-color: white;
+        /* padding: 20px; */
+    margin-top: -20px;
+    display: flex;
+ }
+ .order-detail-content{
+    width: 60%;
+    background-color: #dad4d4;
+    padding: 20px;
+ }
+ .icon-shipping-from{
+      margin-right: 10px;
+   font-size: 25px;
+   transform: translateY(10px);
+ }
+ .text-shipping-from{
+    font-size: 25PX;
+ }
+ .note-text{
+    margin-left: 43px;
+    font-size: 15px;
+    color: #555;
+ }
+
+ .product-table .ant-table-thead > tr > th {
+  background: #fafafa;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.product-table .ant-image-img {
+  border-radius: 8px;
+}
+
+.text-shipping-from {
+  font-size: 16px;
+  margin-left: 8px;
+}
+/* Xóa nền header và nội dung bảng */
+.product-table .ant-table,
+.product-table .ant-table-container,
+.product-table .ant-table-thead > tr > th,
+.product-table .ant-table-tbody > tr > td {
+  background: transparent !important;
+}
+
+/* Xóa viền nếu bạn muốn bảng gọn gàng */
+.product-table .ant-table-tbody > tr > td,
+.product-table .ant-table-thead > tr > th {
+  border: none !important;
+}
+
+/* Xóa bóng và viền ngoài */
+.product-table .ant-table-wrapper {
+  box-shadow: none !important;
+  border: none !important;
+}
+.detail-method{
+    padding: 20px;
+    width: 40%;
+    float: right;
+}
+.tue-aug-15{
+    font-weight: bold !important;
+    margin-top: -30px;
+}
+.checkbox-expe .ant-checkbox-inner {
+  width: 40px;
+  height: 40px;
+}
+/* ✅ Phóng to và chỉnh dấu tick */
+.checkbox-expe .ant-checkbox-checked .ant-checkbox-inner::after {
+  width: 8px;
+  height: 14px;
+  border-width: 3px; /* độ dày dấu tick */
+  top: 45%;
+  left: 30%;
+}
+.checkbox-expe{
+    font-size: 18px;
+    color: #555;
+}
+.checkbox-expe-text{
+    font-size: 18px;
+    font-weight: 400;
+}
+.free-expe{
+    color: rgb(33, 221, 33);
+    font-weight: 700;
+    font-size: 20px;
+    transform: translateY(10px) !important;
+    float: right;
+}
+.free-expe2{
+   
+    font-weight: 700;
+    font-size: 20px;
+    transform: translateY(10px) !important;
+    float: right;
+}
+.more-div{
+    text-align: center;
+}
+.more-shipping-option{
+    color: #007bff;
+    cursor: pointer;
+   
+}
+.icon-more{
+    color: #007bff;
+    cursor: pointer;
+}
+.select-gift{
+    background-color: white;
+    
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  transform: translateY(-50px);
+}
+.select-gift-button{
+    border: 2px solid rgb(10, 211, 10);
+    font-size: 20px;
+    color:  rgb(10, 211, 10);
+    height: 70px;
+    width: 90%;
+}
+.select-gift-button:hover {
+ filter: brightness(85%); /* làm tối mờ button */
+ 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* đổ bóng nhẹ */
+  transform: translateY(-2px); /* nâng lên 1 chút */
+}
+.cart-id-div{
+    background-color: white;
+    padding: 20PX;
+    margin-top: 16px;
+    transform: translateY(-50px);
+}
+.cart-id-text{
+    font-size: 20px;
+}
+.having-trouble{
+    font-size: 20px;
+}
+.live-chat{
+    color: #007bff;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.live-chat-phone{
+    font-size: 20px;
+    margin-left: 20px;
+}
+.more-help-content{
+    color: #007bff;
+    margin-bottom: 10px;
+    font-size: 15px;
+}

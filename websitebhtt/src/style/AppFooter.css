@@ -1,0 +1,130 @@
+.footer{
+  background-color: black;
+  padding: 20px;
+  height: 450px;
+  margin-top: 50px;
+}
+.footer-logo img{
+  width: 100px;
+  height: auto;
+  margin-top: 30px;
+  
+}
+.subscribe-input{
+  display: flex;
+  margin-top: 100px;
+  gap: 12px;
+
+}
+.footer-input{
+  border-radius: 50px;
+  height: 45px;
+  width: 200px;
+}
+.footer-button{
+  border-radius: 50px;
+background-color: #383737;
+height: 45px;
+}
+.footer-text-gaith{
+  color: #555;
+  margin-top: 120px ;
+  display: flex;
+}
+.quick-link{
+  color: white;
+  margin-top: 30px;
+  font-size: 15px;
+}
+.quick-link-content{
+  color: #555;
+  margin-top: 3px;
+  display: flex;
+}
+.legal-link{
+  color: white;
+  margin-top: 30px;
+  font-size: 15px;
+  
+}
+.legal-link-content{
+  color: #555;
+  margin-top: 3px;
+  display: flex;
+}
+.contact-information{
+  color: white;
+  margin-top: 30px;
+  font-size: 15px;
+ 
+}
+.contact-information-content{
+  color: #555;
+  margin-top: 3px;
+  display: flex;
+}
+.social-icons {
+  display: flex;
+  gap: 20px; /* khoảng cách giữa các icon */
+  align-items: center;
+}
+
+.social-icons .icon {
+  font-size: 32px; /* phóng to icon */
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+/* hover phóng to nhẹ */
+.social-icons .icon:hover {
+  transform: scale(1.2);
+}
+
+/* màu riêng cho từng icon */
+.social-icons .facebook {
+  color: #3b5998;
+}
+
+.social-icons .twitter {
+  color: #1da1f2;
+}
+
+.social-icons .xicon {
+  color: #e0245e; /* màu giống X hiện tại */
+}
+.logo-connect{
+  justify-content: flex-end;
+  display: flex;
+  gap: 10px;
+  margin-top: 30px;
+}
+.logo-connect-content{
+  height: 50px;
+  width: auto;
+  display: flex;
+ 
+
+}
+.card-logo-item1{
+  gap: 10px;
+  margin-top: 70px;
+  display: flex;
+  justify-content: flex-end;
+}
+.card-logo-item2{
+    gap: 10px;
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+.card-ideal{
+background-color: white;
+border-radius: 10px;
+width: 60px;
+height: 40px;
+}
+.card-ideal img{
+  width: 60px;
+height: 40px;
+border-radius: 10px;
+}

@@ -1,0 +1,23 @@
+/* Ghi đè màu nền của mục được chọn */
+.ant-menu-dark.ant-menu-vertical .ant-menu-item-selected {
+  background-color: #1677ff !important; /* Màu xanh dương */
+  border-radius: 8px; /* Bo góc cho hiện đại */
+  margin-inline: 8px; /* Thêm khoảng cách */
+  width: calc(100% - 16px);
+}
+
+/* Đảm bảo icon được chọn có màu trắng */
+.ant-menu-dark .ant-menu-item-selected .anticon {
+  color: #fff !important;
+}
+
+/* Tùy chỉnh mục Hỗ trợ để nó luôn ở dưới cùng */
+.ant-menu-dark.ant-menu-vertical {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.ant-menu-item[style*="margin-top: auto"] {
+    margin-top: auto !important;
+}

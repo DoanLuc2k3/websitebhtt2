@@ -1,0 +1,199 @@
+.about-us-page{
+    
+    padding-top: 30px;
+}
+.title-about {
+  display: flex;
+  justify-content: space-between; /* title trái, div phải */
+  align-items: flex-start; /* căn theo đầu dòng */
+  padding: 0 90px;
+}
+.title-left-about {
+  margin: 0; /* bỏ margin mặc định của Title */
+  width: 60%;
+}
+.title-right-about {
+  max-width: 50%; /* tuỳ chỉnh chiều rộng khối phải */
+  text-align: left; /* căn chữ bên phải nếu muốn */
+  width: 40%;
+}
+.divider-about{
+border-top: 2px solid #000; /* hoặc màu và độ dày tuỳ ý */
+
+}
+.about-us-service-col .content img {
+  /* CSS bạn muốn */
+  width: 100%;
+  border-radius: 18px;
+}
+.about-us-service-col .content h4.ant-typography {
+  color: black !important;
+  line-height: 1.6;
+}
+
+.about-us-service-col .content span.ant-typography {
+  font-size: 15px;
+  color: #555;
+  line-height: 1.6;
+}
+.about-us-service-col .content button {
+  border-radius: 5px;
+  border: 1px solid rgb(0, 204, 255);
+}
+/* Hiệu ứng khi hover */
+.about-us-service-col .content button:hover {
+  background-color: rgb(0, 204, 255);
+  color: white;
+  transform: scale(1.05); /* hơi phóng to nhẹ */
+}
+.high-quality{
+    padding: 70px 20px;
+}
+.high-quality-button{
+    margin-top: 30px;
+    height: 40px;
+}
+.text-content-2{
+    font-size: 15px;
+    color: #555;
+}
+
+.high-quality-col-left img{
+    width: 500px;
+    height: auto;
+    transform: translateX(50px);
+}
+.member {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+}
+
+.member-card {
+  width: 300px;
+  text-align: center;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+
+.member-img {
+  width: 100%;
+  height: auto;
+  border-radius: 12px 12px 0 0;
+  display: block;
+}
+
+.member-info {
+  padding: 15px;
+}
+
+.name-member {
+  display: block;
+  font-weight: 600;
+  font-size: 18px;
+  margin: 10px 0;
+  color: #222;
+}
+
+.member-text {
+    display: block;
+  font-size: 14px;
+  color: #555;
+  line-height: 1.6;
+  text-align: justify;
+}
+
+.social-icons2 {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.social-icons2 .anticon {
+  font-size: 22px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.social-icons2 .anticon:hover {
+  color: rgb(0, 204, 255);
+  transform: scale(1.2);
+}
+.big-member-div{
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+}
+.welcome-website{
+    padding: 60px;
+    gap: 30px;
+    display: flex;
+}
+.welcome-website-text{
+    color: #555;
+}
+.advantages-options{
+    display: flex;
+    gap: 20px;
+}
+.advantages-options-div{
+    margin-top: 30px;
+    background-color: #f3e9e9;
+    padding: 7px;
+    border-radius: 5px;
+}
+.advantages-options-text{
+   margin-left: 5px;
+}
+.button-know{
+    gap: 20px;
+    margin-top: 30px;
+    display: flex;
+}
+.button-know-primary{
+    width: 100px;
+}
+.button-know-primary.ant-btn-primary:hover {
+  background-color: #4096ff;
+  border-color: #4096ff;
+  transform: translateY(-2px); /* nổi lên nhẹ khi hover */
+  box-shadow: 0 4px 10px rgba(64, 150, 255, 0.4);
+}
+
+.button-know-secondary{
+    width: 100px;
+    border: 1px solid #1677ff;
+}
+.button-know-secondary:hover {
+  background-color: #1677ff;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(64, 150, 255, 0.4);
+}
+
+/* ✅ Làm mượt hiệu ứng hover */
+.about-us-service-col .content {
+  transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1),
+              box-shadow 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.about-us-service-col .content img {
+  transition: transform 0.6s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* ✅ Hiệu ứng khi hover */
+.about-us-service-col:hover .content {
+  transform: translateY(-8px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
+}
+
+.about-us-service-col:hover img {
+  transform: scale(1.07);
+}
+
+
+
+

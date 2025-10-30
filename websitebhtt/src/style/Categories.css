@@ -1,0 +1,68 @@
+.categories-dropdown {
+  position: fixed;
+  top: 64px; /* hoặc chỉnh theo chiều cao header */
+  left: 0;
+  width: 100vw;
+  background: rgba(255, 255, 255, 0.5); /* trắng trong suốt hơn một chút */
+  padding: 24px 60px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 80px;
+  border-radius: 0;
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+  animation: slideDown 0.35s ease forwards;
+  transform-origin: top center;
+}
+
+.category-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 150px;
+}
+
+.category-title {
+  font-weight: 600;
+  font-size: 16px;
+  color: #1677ff;
+  margin-bottom: 10px;
+  transition: color 0.2s ease;
+}
+
+.category-title:hover {
+  color: #0958d9;
+}
+
+.category-products {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.category-product {
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.category-product:hover {
+  color: #1677ff;
+  transform: translateX(4px);
+}
+
+/* 🌟 Hiệu ứng hiện xuống mượt */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

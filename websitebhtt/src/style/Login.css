@@ -1,0 +1,52 @@
+.login {
+  display: flex;
+  justify-content: center; /* Căn giữa ngang */
+  align-items: center; /* Căn giữa dọc */
+  height: 100vh; /* Chiếm toàn bộ chiều cao màn hình */
+  background: none;
+}
+
+.login-row {
+  width: 80%;
+  max-width: 1000px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.login-col-left {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background:url("../assets/images/login-background.jpg");
+  padding-left: 30px;
+}
+
+.title-left {
+    color: rgb(45, 233, 247) !important;
+    display: block;
+    font-size: 60px !important;
+    text-shadow: 4px 4px 12px rgba(43, 41, 41, 0.7);
+}
+.text-left{
+    font-size: large;
+    color: white;
+   text-shadow:
+        0 0 10px rgba(255, 255, 255, 0.8),
+        0 0 20px rgba(0, 255, 255, 0.6),
+        0 0 30px rgba(0, 255, 255, 0.4);
+}
+
+.login-col-right {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 28px;
+  font-weight: 600;
+  color: #1677ff;
+  width: 420px;
+  padding-top: 20px;
+  padding-left: 10px;
+  padding-right: 10px;
+}

@@ -1,0 +1,970 @@
+/* Footer tổng thể */
+.app-footer {
+  background: linear-gradient(180deg, #f7f8fa, #eef2f5);
+  padding: 48px 24px 24px;
+  text-align: center;
+}
+
+/* Dark footer variant (Estrella style) */
+.dark-footer {
+  background: #1f2937; /* dark */
+  color: #cbd5e1;
+  padding: 48px 0 24px;
+}
+
+.dark-footer .footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.dark-footer .footer-brand {
+  flex: 0 0 220px; /* reserve stable column width so brand doesn't collapse */
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* .footer-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #fbbf24; /* gold */
+  /* display: flex;
+  align-items: center;
+  justify-content: center;
+  /* color: #111827;
+  font-weight: 700;
+} */ 
+
+.footer-brand > div {
+  max-width: 220px; /* keep description in a readable column */
+}
+
+.footer-brand .footer-title {
+  white-space: nowrap; /* keep brand name on one line */
+  margin-bottom: 6px;
+}
+
+.footer-brand .contact-line {
+  margin-top: 8px;
+  color: #cbd5e1;
+}
+
+.social-btn .anticon {
+  color: #cbd5e1;
+}
+
+.dark-footer .footer-links {
+  display: flex;
+  gap: 28px;
+  flex: 1 1 680px;
+}
+
+.footer-col-links {
+  min-width: 120px;
+}
+
+.footer-col-heading {
+  display: block;
+  color: #fff;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.footer-col-links ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-col-links li {
+  margin-bottom: 8px;
+}
+
+.footer-link-light {
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.footer-link-light:hover {
+  color: #fff;
+}
+
+.footer-social {
+  flex: 0 0 220px;
+}
+
+.dark-footer-bottom {
+  background: #111827;
+  padding: 18px 0 36px;
+  margin-top: 18px;
+}
+
+@media (max-width: 900px) {
+  .dark-footer .footer-inner {
+    flex-direction: column;
+    gap: 18px;
+    align-items: stretch;
+    padding: 0 18px;
+  }
+  .footer-social {
+    text-align: left;
+  }
+}
+/* Tiêu đề trong footer */
+.footer-title {
+  margin: 0;
+  color: #000;
+}
+/* Đoạn văn, text */
+.footer-text {
+  color: #555;
+  font-size: 14px;
+  line-height: 1.6;
+}
+/* Link trong footer */
+.footer-link {
+  color: #1677ff;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.3s;
+}
+.footer-link:hover {
+  color: #0958d9;
+  text-decoration: underline;
+}
+/* Dòng bản quyền dưới cùng */
+.footer-bottom {
+  margin-top: 32px;
+  border-top: 1px solid #e6e9ee;
+  padding-top: 18px;
+}
+
+.footer-top {
+  padding-bottom: 18px;
+}
+
+.footer-col {
+  text-align: left;
+}
+
+.footer-bottom-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.contact-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-footer .ant-typography.footer-title {
+  color: #111;
+}
+
+.app-footer .ant-btn-link {
+  color: inherit;
+  border-radius: 6px;
+}
+
+@media (max-width: 768px) {
+  .footer-col {
+    text-align: center;
+  }
+  .app-footer {
+    padding: 32px 16px;
+  }
+}
+
+/* padding cho content chung - centered container to balance gutters */
+.page-content {
+  padding: 32px 24px; /* inner padding */
+  max-width: 1200px; /* center content */
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* khoảng cách dọc giữa các section */
+.page-space {
+  width: 100%;
+}
+
+/* style cho tiêu đề các ưu điểm */
+.feature-title {
+  margin-bottom: 8px;
+}
+
+/* style cho text mô tả các ưu điểm */
+.feature-text {
+  line-height: 1.6;
+}
+
+/* small global tweaks */
+.ant-layout {
+  background: #fff;
+}
+
+.ant-card-cover img {
+  object-fit: cover;
+  height: 220px;
+}
+
+.ant-layout-header {
+  background: #fff;
+}
+
+/* CONTACT PAGE STYLES */
+.page-content.about-page {
+  max-width: 100%;
+  padding: 0;
+}
+.contact-banner {
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  background: linear-gradient(180deg, #fff9fb 0%, #f4f6ff 60%);
+  padding: 56px 20px 44px;
+  text-align: center;
+  border-bottom-left-radius: 18px;
+  border-bottom-right-radius: 18px;
+  box-shadow: 0 8px 30px rgba(2, 6, 23, 0.04);
+}
+.contact-banner-content {
+  max-width: 1180px;
+  margin: 0 auto;
+  position: relative;
+}
+.contact-banner-title {
+  margin-bottom: 8px;
+  color: #0f1724;
+  font-weight: 800;
+  font-size: 28px;
+}
+/* breadcrumb pill */
+.contact-banner .ant-breadcrumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.75);
+  padding: 8px 12px;
+  border-radius: 999px;
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.03);
+  margin-top: 12px;
+}
+.contact-banner .ant-breadcrumb a,
+.contact-banner .ant-breadcrumb span {
+  color: #374151;
+}
+.ant-breadcrumb {
+  display: inline-block;
+}
+.ant-breadcrumb a {
+  color: #555;
+}
+
+.ant-breadcrumb .ant-breadcrumb-link {
+  font-size: 14px;
+}
+.contact-info-title {
+  margin-left: 10px;
+  color: #777;
+  font-size: 14px;
+}
+
+/* FORM STYLES */
+.contact-card {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  background: #fff;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.contact-section {
+  padding: 40px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.contact-left {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.contact-info .info-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 15px;
+  font-size: 14px;
+  color: #555;
+}
+
+.info-icon {
+  color: #52c41a;
+  font-size: 18px;
+  margin-right: 10px;
+  margin-top: 3px;
+}
+
+.contact-form-card {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.contact-form-title {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.map-container iframe {
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  margin-bottom: 20px;
+  height: 540px;
+}
+/* Modernized contact styles */
+.contact-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 28px 12px;
+}
+
+.contact-info {
+  background: transparent;
+}
+
+.contact-info .contact-info-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  color: #374151;
+}
+
+.info-icon {
+  color: #10b981; /* emerald */
+  font-size: 20px;
+  background: rgba(16, 185, 129, 0.08);
+  padding: 8px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.contact-card {
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: 0 12px 40px rgba(2, 6, 23, 0.06);
+}
+
+.contact-card .ant-form-item {
+  margin-bottom: 14px;
+}
+
+.contact-card .ant-input,
+.contact-card .ant-input-textarea {
+  border-radius: 8px;
+}
+
+.contact-card .ant-btn-primary {
+  background: linear-gradient(90deg, #06b6d4 0%, #3b82f6 100%);
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  box-shadow: 0 12px 36px rgba(59, 130, 246, 0.12);
+  font-weight: 700;
+}
+
+.map-card {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(2, 6, 23, 0.06);
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure iframe fills the card exactly and remove unwanted gaps */
+.map-card {
+  padding: 0;
+}
+.map-card .map-container {
+  padding: 0;
+}
+.map-card .map-container {
+  flex: 1 1 auto;
+  display: block;
+}
+.map-card .map-container iframe {
+  display: block;
+  width: 100%;
+  height: 100%; /* fill the map-card */
+  min-height: 420px; /* ensure a sensible minimum */
+  margin: 0; /* remove previous 20px bottom margin */
+  border: 0;
+}
+
+@media (max-width: 768px) {
+  .map-container iframe {
+    height: 340px;
+  }
+  .map-card .map-container iframe {
+    height: 340px;
+  }
+}
+/* about page */
+.about-left {
+  background-image: url("https://intphcm.com/data/upload/banner-thoi-trang4.jpg");
+  background-size: cover;
+  background-position: center;
+  min-height: 420px; /* keep reasonable height */
+  height: 100%;
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.about-left::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.05));
+}
+
+.about-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  gap: 24px;
+  align-items: flex-start; /* align top */
+}
+
+/* Force two-column layout for About: left collage fixed width, right content fluid
+   Activate at 768px to match Ant 'md' breakpoint so text sits beside image on tablets/desktop */
+@media (min-width: 768px) {
+  .about-container {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 32px;
+  }
+  .about-left.collage {
+    /* removed fixed collage width so layout does not reserve space */
+    flex: 0 0 auto;
+    max-width: none;
+  }
+  .about-right-inner {
+    flex: 1 1 auto;
+    max-width: none; /* allow the inner card to use full available width */
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0; /* ensure it aligns with page content */
+  }
+}
+
+@media (max-width: 767px) {
+  /* revert to stacked layout on smaller screens */
+  .about-container {
+    display: block;
+  }
+  .about-left.collage,
+  .about-right-inner {
+    max-width: 100%;
+  }
+}
+
+.about-right {
+  display: flex;
+  align-items: center;
+}
+.about-right-inner {
+  background: #fff;
+  padding: 36px; /* increased padding for a more substantial card */
+  border-radius: 12px;
+  box-shadow: 0 10px 36px rgba(2, 6, 23, 0.1);
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.about-right-inner:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 46px rgba(2, 6, 23, 0.12);
+}
+
+/* About page typography & layout fixes */
+.about-page {
+  padding: 40px 20px;
+}
+.about-heading {
+  color: #1890ff;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+.about-paragraph {
+  color: #333;
+  line-height: 1.7;
+  font-size: 15px;
+  margin-bottom: 14px;
+}
+
+/* Improve typography for readability */
+.about-right-inner p,
+.about-paragraph {
+  max-width: 76ch; /* comfortable line length */
+  color: #374151; /* slightly softer than pure black */
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.about-heading {
+  color: #0b63d6;
+  margin-bottom: 12px;
+  font-weight: 800;
+  font-size: 28px; /* larger, prominent heading */
+  letter-spacing: -0.2px;
+}
+
+/* mini feature blurbs at top of About */
+.about-mini-features {
+  display: flex;
+  justify-content: space-around;
+  gap: 20px; /* a bit more breathing room for larger icons */
+  /* margin-bottom: 28px; */
+  flex-wrap: wrap; /* keep them on a single row on wide screens */
+  max-width: 1200px;
+  margin: 40px auto;
+}
+.mini-feature {
+  flex: 1;
+  min-width: 250px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+.mini-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.08);
+  font-size: 20px; /* if icon is text-based */
+}
+.mini-icon {
+  background: linear-gradient(180deg, #ffffff 0%, #f3f6ff 100%);
+  color: #0b63d6;
+}
+.mini-text {
+  color: #222;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+/* Keep stacked layout on small screens, but ensure no-wrapping on medium+ */
+@media (max-width: 900px) {
+  .about-mini-features {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+}
+
+@media (min-width: 900px) {
+  .about-mini-features {
+    flex-wrap: nowrap;
+  }
+}
+
+/* CTA button inside about card */
+.about-right-inner .ant-btn-primary {
+  background: linear-gradient(90deg, #1677ff 0%, #4096ff 100%);
+  border: none;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(64, 150, 255, 0.14);
+  font-weight: 700;
+}
+.about-right-inner .ant-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 36px rgba(64, 150, 255, 0.18);
+}
+
+/* Ensure consistent font rendering for headings and paragraphs */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial;
+}
+
+/* Make the hero/breadcrumb area not collapse spacing */
+.ant-breadcrumb {
+  margin-bottom: 18px !important;
+}
+
+/* make the about image area responsive */
+@media (max-width: 768px) {
+  .about-left {
+    min-height: 220px;
+    height: 220px;
+  }
+  .about-right-inner {
+    padding: 18px;
+  }
+}
+
+/* LOGIN PAGE STYLES */
+.login-row{
+  width: 500px;
+  height: auto;
+}
+.login-page {
+    background-image: url("F:\websitebhtt\websitebhtt\src\assets\images\profile-banner2.png");
+  background-size: cover; /* Ảnh phủ kín toàn bộ */
+  background-position: center; /* Căn giữa ảnh */
+  background-repeat: no-repeat; /* Không lặp lại ảnh */
+  min-height: 100vh; /* Chiều cao tối thiểu = 100% chiều cao trang */
+  padding-left: 35px;
+  padding-right: 35px;
+  padding-top: 100px;
+  /* Lớp phủ màu tối */
+  /* background-color: rgba(0, 0, 0, 0.4); màu đen với độ trong suốt 40%
+  background-blend-mode: overlay; */
+}
+
+.login-card {
+  background: #fff;
+  border-radius: 12px;
+  max-width: 420px;
+  margin: 40px auto;
+  padding: 28px 28px;
+  box-shadow: 0 18px 48px rgba(11, 99, 214, 0.08);
+  text-align: center;
+ 
+}
+
+.or-login {
+  display: block;
+  text-align: center;
+  color: #888;
+  margin-top: 8px;
+}
+.login-with .ant-btn {
+  border-radius: 8px;
+}
+.btn-login-google {
+  background: #fff;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+}
+.btn-login-google .anticon {
+  margin-right: 6px;
+}
+.btn-login-facebook {
+  background: #fff;
+  border: 1px solid #3b82f6;
+  color: #3b82f6;
+}
+.btn-login-facebook .anticon {
+  margin-right: 6px;
+}
+.login-title {
+  display: block;
+  text-align: center;
+  margin-bottom: 25px !important;
+font-weight: bold !important;
+  font-size: 20px !important;
+  color: #00c6ff !important;
+  
+}
+.dont-have-account {
+  display: block;
+  text-align: center;
+  color: #888;
+  margin-top: 8px;
+
+}
+.login-page {
+  padding: 60px 20px;
+  min-height: 100vh;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .about-left {
+    min-height: 220px;
+    height: 220px;
+  }
+  .page-content {
+    padding: 20px;
+  }
+}
+/*profile page styles */
+.profile-page {
+  background-image: url("F:\websitebhtt\websitebhtt\src\assets\images\profile-banner2.png");
+  background-size: cover; /* Ảnh phủ kín toàn bộ */
+  background-position: center; /* Căn giữa ảnh */
+  background-repeat: no-repeat; /* Không lặp lại ảnh */
+  min-height: 100vh; /* Chiều cao tối thiểu = 100% chiều cao trang */
+  padding-left: 35px;
+  padding-right: 35px;
+  padding-top: 100px;
+  /* Lớp phủ màu tối */
+  background-color: rgba(0, 0, 0, 0.4); /* màu đen với độ trong suốt 40% */
+  background-blend-mode: overlay;
+  /* padding: 50px 80px;
+  background: radial-gradient(
+      circle at 10% 20%,
+      rgba(6, 182, 212, 0.06),
+      transparent 20%
+    ),
+    linear-gradient(180deg, #ecfeff 0%, #ffffff 100%);
+
+  min-height: 100vh; */
+}
+.profile-page-title {
+  margin-left: 64px;
+}
+.title-profile {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 8px !important;
+  color: #ffffff !important;
+  font-family: "Nunito Sans", "Open Sans", "Roboto", sans-serif;
+}
+.text-profile {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.8); /* màu trắng nhạt hơn */
+  max-width: 600px;
+  /* margin-bottom: 12px !important; */
+}
+.edit-profile-button {
+  margin-top: 35px;
+  height: 40px;
+  background-color: #00c6ff;
+  font-weight: 700;
+  margin-bottom: 50px;
+}
+
+.profile-card {
+  text-align: center;
+}
+.my-account-form {
+  padding: 20px;
+}
+/* Profile page modern styles */
+.profile-grid {
+  display: grid;
+  grid-template-columns: 735px 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+.profile-card {
+  border-radius: 14px;
+  padding: 36px 28px;
+  box-shadow: 0 20px 40px rgba(2, 6, 23, 0.06);
+  background: #fff;
+}
+
+.profile-avatar {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  margin: 0 auto 5px auto;
+  background: linear-gradient(180deg, #eef2ff, #ffffff);
+  display: inline-block;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  color: #0b63d6;
+  transform: translateY(-80px);
+  position: relative;
+}
+.avatar-wrapper{
+  position: relative;
+  display: inline-block;
+}
+.user-avatar{
+    border: 3px solid #1890ff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+.profile-avatar .ant-avatar{
+    border: 3px solid #1890ff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  border-radius: 50%;
+}
+/* lớp phủ */
+/* lớp phủ mờ đen */
+.avatar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;                /* ban đầu ẩn */
+  transition: opacity 0.3s ease;
+  cursor: pointer;
+}
+
+/* hiện overlay khi hover */
+.profile-avatar:hover .avatar-overlay {
+  opacity: 1;
+}
+
+.camera-icon {
+  font-size: 24px;
+  margin-bottom: 6px;
+}
+
+.profile-name {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  margin-top: -70px;
+}
+
+.profile-meta {
+  color: #6b7280;
+  font-size: 14px;
+  margin-bottom: 14px;
+}
+
+.profile-cta .ant-btn {
+  border-radius: 10px;
+  padding: 8px 14px;
+  box-shadow: 0 8px 24px rgba(11, 99, 214, 0.08);
+}
+
+.profile-form-card {
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: 0 12px 36px rgba(2, 6, 23, 0.06);
+  background: rgb(255, 249, 249);
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+ height: 560px;
+
+  /* height: auto;
+  width: auto; */
+}
+
+.profile-form-card .ant-form-item {
+  margin-bottom: 14px;
+}
+
+@media (max-width: 900px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+  .profile-page {
+    padding: 28px 16px;
+  }
+}
+.banner-footer {
+  background-color: rgb(255, 249, 249);
+  width: auto;
+  height: 500px;
+  margin: -35px;
+  margin-top: -450px;
+}
+.my-account-header {
+  display: flex;
+  background-color: white;
+  margin-bottom: 20px;
+  margin-top: -22px;
+  margin-left: -22px;
+  margin-right: -22px;
+  height: 60px;
+  padding: 20px;
+  /* border-radius: 14px; */
+}
+
+.my-account-title {
+  /* font-size: 25px !important; */
+}
+.setting-button {
+  display: flex;
+  justify-content: end;
+  transform: translateY(-5px);
+}
+.setting-button .ant-btn-primary {
+  font-weight: 700 !important;
+}
+.user-info-title {
+  color: #c2bdbd !important;
+}
+.ant-form-item-label > label {
+  font-weight: 500;
+}
+.ant-form-item-control-input-content > * {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: none !important;
+  height: 40px;
+}
+.save-change-button {
+
+  font-weight: 700 !important;
+  margin-top: 20px;
+}
+.connect-bank-col{
+text-align: left;
+color: #c6c8c9;
+font-weight: 500;
+font-size: 13px;
+display: flex;
+  align-items: center;
+}
+.icon-bank-col{
+  text-align: right;
+}
+.connect-bank-row{
+ transition: background-color 0.3s ease;
+  cursor: pointer;
+}
+.doanluc197{
+  font-size: 12px;
+  color: #939597;
+}
+.form-login .dont-have,
+.form-login .dont-have * {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+.form-login .or-login-with-form-item,
+.form-login .or-login-with-form-item *{
+    background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+

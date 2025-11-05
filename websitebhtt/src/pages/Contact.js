@@ -1,9 +1,9 @@
 import React from "react";
+import "../style/Contact.css"; // Đảm bảo đã import file CSS
 import {
   Typography,
   Row,
   Col,
-  Divider,
   Form,
   Input,
   Button,
@@ -12,7 +12,7 @@ import {
   Breadcrumb as BreakCrum,
 } from "antd";
 
-const { HomeOutlined, EnvironmentOutlined, PhoneOutlined, MailOutlined } = require("@ant-design/icons");
+import { HomeOutlined, EnvironmentOutlined, PhoneOutlined, MailOutlined } from "@ant-design/icons";
 const { Title, Text } = Typography;
 
 const Contact = () => {
@@ -20,8 +20,8 @@ const Contact = () => {
     <>
       <div className="contact-banner">
         <div className="contact-banner-content">
-          <Title className="contact-title" level={1}>
-            CONTACT
+          <Title className="contact-banner-title" level={1}>
+            CONTACT US
           </Title>
           <BreakCrum>
             <BreakCrum.Item href="/">
@@ -33,65 +33,97 @@ const Contact = () => {
         </div>
       </div>
 
-      <div className="contact-container" style={{ marginTop: 24 }}>
+      <div className="contact-container" style={{ marginTop: 40 }}>
+        
+        {/* KHU VỰC THÔNG TIN LIÊN HỆ (3 cột riêng biệt) */}
+        <Row gutter={[24, 24]} justify="space-between" style={{ marginBottom: 40 }}>
+          <Col xs={24} md={8}>
+             <Card className="contact-card" bordered={false} hoverable>
+                <div className="contact-info-item">
+                    <EnvironmentOutlined className="info-icon" />
+                    <div>
+                        <Text strong>OUR ADDRESS</Text>
+                        <p style={{ margin: 0, color: '#374151' }}>279 Mai Dang Chon, Hoa Quy, Da Nang City</p>
+                    </div>
+                </div>
+            </Card>
+          </Col>
+          
+          <Col xs={24} md={8}>
+            <Card className="contact-card" bordered={false} hoverable>
+                <div className="contact-info-item">
+                    <PhoneOutlined className="info-icon" />
+                    <div>
+                        <Text strong>CALL US</Text>
+                        <p style={{ margin: 0, color: '#374151' }}>Phone: 0123456789</p>
+                    </div>
+                </div>
+            </Card>
+          </Col>
+          
+          <Col xs={24} md={8}>
+            <Card className="contact-card" bordered={false} hoverable>
+                <div className="contact-info-item">
+                    <MailOutlined className="info-icon" />
+                    <div>
+                        <Text strong>EMAIL US</Text>
+                        <p style={{ margin: 0, color: '#374151' }}>Email: contact@domain.com</p>
+                    </div>
+                </div>
+            </Card>
+          </Col>
+        </Row>
+        
+        {/* KHU VỰC FORM VÀ MAP (2 cột chính) */}
         <Row gutter={[32, 32]} justify="center">
-          {/* Contact Information */}
-          <Col xs={24} sm={24} md={10}>
-            <div className="contact-info">
-              <div className="contact-info-item">
-                <EnvironmentOutlined className="info-icon" />
-                <Text className="contact-info-title">
-                  279 Mai Dang Chon, Hoa Quy, Da Nang City
-                </Text>
-              </div>
-              <div className="contact-info-item">
-                <PhoneOutlined className="info-icon" />
-                <Text className="contact-info-title">Phone: 0123456789</Text>
-              </div>
-              <div className="contact-info-item">
-                <MailOutlined className="info-icon" />
-                <Text className="contact-info-title">Email: contact@domain.com</Text>
-              </div>
-
-              <Divider />
-
-              {/* Contact Form */}
-              <Card className="contact-card">
-                <Title level={4}>Send Us a Message</Title>
-                <Form
-                  className="form-contact"
-                  onFinish={() =>
-                    message.success(
-                      "Message sent successfully! We will get back to you as soon as possible."
-                    )
-                  }
+          
+          {/* Contact Form */}
+          <Col xs={24} sm={24} md={12}>
+            {/* Form được bao bọc trong Card, áp dụng style cân đối từ CSS */}
+            <Card className="contact-card" bordered={false}>
+              {/* Tiêu đề cấp 3, không cần style inline vì CSS đã xử lý margin và căn giữa */}
+              <Title level={3}>
+                Send Us a Message
+              </Title>
+              <Form
+                className="form-contact"
+                layout="vertical"
+                onFinish={() =>
+                  message.success(
+                    "Message sent successfully! We will get back to you as soon as possible."
+                  )
+                }
+              >
+                <Form.Item
+                  label="Your Name"
+                  name="name"
+                  rules={[{ required: true, message: "Please enter your name" }]}
                 >
-                  <Form.Item
-                    name="name"
-                    rules={[{ required: true, message: "Please enter your name" }]}
-                  >
-                    <Input placeholder="Your name" />
-                  </Form.Item>
-                  <Form.Item
-                    name="email"
-                    rules={[{ required: true, message: "Please enter your email" }]}
-                  >
-                    <Input placeholder="Your email" />
-                  </Form.Item>
-                  <Form.Item
-                    name="message"
-                    rules={[{ required: true, message: "Please enter your message" }]}
-                  >
-                    <Input.TextArea rows={4} placeholder="Message" />
-                  </Form.Item>
-                  <Form.Item>
-                    <Button type="primary" htmlType="submit" block>
-                      Send Message
-                    </Button>
-                  </Form.Item>
-                </Form>
-              </Card>
-            </div>
+                  <Input placeholder="Enter your name" />
+                </Form.Item>
+                <Form.Item
+                  label="Your Email"
+                  name="email"
+                  rules={[{ required: true, message: "Please enter your email" }]}
+                >
+                  <Input placeholder="Enter your email address" />
+                </Form.Item>
+                <Form.Item
+                  label="Message"
+                  name="message"
+                  rules={[{ required: true, message: "Please enter your message" }]}
+                >
+                  {/* Tăng rows lên 5 để TextArea to hơn, cân đối hơn */}
+                  <Input.TextArea className="input-text-message" rows={8} placeholder="Type your message here..." />
+                </Form.Item>
+                <Form.Item>
+                  {/* Dùng size="large" và CSS để nút cao 50px */}
+                  <Button type="primary" htmlType="submit" block size="large">
+                    Send Message
+                  </Button>
+                </Form.Item>
+              </Form>
+            </Card>
           </Col>
 
           {/* Google Map */}

@@ -16,8 +16,8 @@
 .order-success-div {
   background: #fff;
   border-radius: 12px;
-  padding: 30px 40px;
-  max-width: 600px;
+  padding: 24px 30px; /* Điều chỉnh padding */
+  max-width: 520px; /* Điều chỉnh độ rộng */
   width: 90%;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   text-align: center;
@@ -35,51 +35,143 @@
     transform: scale(1);
   }
 }
-.success-right{
-    text-align: left;
-    padding-left: 20px;
-}
-.text-success{
-    font-size: 15px !important;
- 
-}
-.thank-title {
-  color: #ff4d4f !important; /* Màu nổi bật */
-  animation: blink 1.2s ease-in-out infinite; /* Gọi hiệu ứng nhấp nháy */
+
+/* ===== CSS CẢI TIẾN CHO POPUP (VỚI HỘP XANH LÁ) ===== */
+
+/* Tinh chỉnh component Result của AntD */
+.order-success-div .ant-result {
+  padding: 16px 0;
 }
 
-/* Hiệu ứng nhấp nháy */
-@keyframes blink {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.6;
-    transform: scale(1.05); /* Phóng to nhẹ */
-  }
+.order-success-div .ant-result-icon {
+  font-size: 64px; /* Icon check nhỏ hơn một chút */
+  margin-bottom: 16px;
 }
 
+.order-success-div .ant-result-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.order-success-div .ant-result-subtitle {
+  font-size: 16px;
+  color: #595959;
+  margin-top: 8px;
+}
+
+/* Style cho ID (HỘP XANH LÁ CỦA BẠN - ĐÃ CĂN GIỮA) */
 .id-order-succcess {
-    background-color: rgb(7, 172, 7);
-    width: 200px;
-    height: 40px;
-    color: white;
-    text-align: center;
-    font-weight: bold;
-    align-items: center;
-    display: flex;
-    justify-content: center;
-    font-size: 20px;
+  background-color: rgb(7, 172, 7);
+  width: 200px;
+  height: 40px;
+  color: white;
+  text-align: center;
+  font-weight: bold;
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  font-size: 20px;
+
+  /* --- THÊM 3 DÒNG NÀY ĐỂ CĂN GIỮA VÀ TẠO KHOẢNG CÁCH --- */
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 12px;
+  /* ---------------------------------------------------- */
 }
 
-.review-your-order{
-    color:blue;
-    cursor: pointer;
+/* Căn trái phần 'extra' */
+.order-success-details {
+  text-align: left;
+  width: 100%;
+  margin: 24px auto 0;
+  background: #fafafa;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
 }
-.success-left{
-    justify-content: center;
-    display: flex;
-    align-items: center;
-  
+
+/* Căn chỉnh bảng Descriptions */
+.order-success-details .ant-descriptions-item-label {
+  color: #595959;
+  font-weight: 500;
+}
+
+.order-success-details .ant-descriptions-item-content b {
+  color: #262626;
+}
+
+/* Cảnh báo SPAM */
+.spam-warning {
+  display: block;
+  margin-top: 16px;
+  font-size: 13px;
+  color: #8c8c8c;
+  text-align: center;
+}
+
+/* Link 'Review Order' */
+.review-your-order {
+  color: #1677ff; /* Màu primary của AntD */
+  cursor: pointer;
+  display: block;
+  text-align: center;
+  margin-top: 16px;
+  font-weight: 600;
+  font-size: 15px;
+}
+.review-your-order:hover {
+  text-decoration: underline;
+}
+
+/* Giữ lại class .text-success nếu bạn dùng ở chỗ khác */
+.text-success {
+  font-size: 15px !important;
+}
+/* ========================================================= */
+/* === PHẦN CHỈNH SỬA: LOẠI BỎ ĐỔ BÓNG VÀ ĐƯỜNG VIỀN XANH KHI FOCUS/HOVER === */
+/* ========================================================= */
+
+/* Áp dụng cho Input (và TextArea) */
+.delivery-information-form .ant-input,
+.schedule-delivery-form .ant-input {
+    border-color: #d9d9d9; /* Đảm bảo border màu xám mặc định */
+}
+.delivery-information-form .ant-input:focus,
+.delivery-information-form .ant-input-focused,
+.delivery-information-form .ant-input:hover,
+.schedule-delivery-form .ant-input:focus,
+.schedule-delivery-form .ant-input-focused,
+.schedule-delivery-form .ant-input:hover,
+.schedule-delivery-form .ant-input-textarea .ant-input {
+    box-shadow: none !important;
+    border-color: #d9d9d9 !important; /* Đặt lại màu border xám mặc định */
+}
+
+/* Áp dụng cho Select */
+.delivery-information-form .ant-select-selector {
+    border-color: #d9d9d9 !important; /* Đảm bảo border màu xám mặc định */
+}
+.delivery-information-form .ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .ant-select-selector,
+.delivery-information-form .ant-select:not(.ant-select-disabled):hover .ant-select-selector,
+.delivery-information-form .ant-select-selector:focus,
+.delivery-information-form .ant-select-selector:active {
+    box-shadow: none !important;
+    border-color: #d9d9d9 !important;
+}
+
+/* Áp dụng cho DatePicker */
+.schedule-delivery-form .ant-picker {
+    border-color: #d9d9d9 !important; /* Đảm bảo border màu xám mặc định */
+}
+.schedule-delivery-form .ant-picker-focused,
+.schedule-delivery-form .ant-picker:hover {
+    box-shadow: none !important;
+    border-color: #d9d9d9 !important;
+}
+
+/* Fix lỗi border của TextArea */
+.schedule-delivery-form .ant-input-textarea .ant-input:focus {
+    box-shadow: none !important;
+    border-color: #d9d9d9 !important;
 }

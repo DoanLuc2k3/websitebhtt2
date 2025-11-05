@@ -1,0 +1,49 @@
+/* src/style/ProductDetail.css */
+
+/* === BỘ CHỌN SỐ LƯỢNG (FIXED LẠI HOÀN TOÀN) === */
+.quantity-product-cart {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Khoảng cách giữa các nút và số lượng */
+}
+
+/* Đảm bảo nút Ant Design có hình dáng đẹp */
+.quantity-product-cart .ant-btn {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    line-height: 1; /* Căn chỉnh ký hiệu "-" và "+" vào giữa */
+    border: 1px solid #d9d9d9;
+    box-shadow: none;
+    font-size: 16px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Định dạng số lượng */
+.quantity-product-cart .ant-typography {
+    font-size: 16px;
+    font-weight: 600;
+    min-width: 20px; /* Độ rộng tối thiểu để căn giữa */
+    text-align: center;
+    color: #000;
+}
+/* === KẾT THÚC FIX LỖI BỘ CHỌN SỐ LƯỢNG === */
+
+
+/* === ĐÃ SỬA LỖI TRÔI NÚT (Giữ nguyên phần này) === */
+.select-quantity { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+   
+    margin-top: 20px;
+    transform: translateY(-5px);
+}
+/* === KẾT THÚC SỬA LỖI TRÔI NÚT === */
+
+/* ... (Giữ nguyên các rule CSS khác) ...
+...
+*/

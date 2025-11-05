@@ -1,0 +1,72 @@
+/* src/pages/QaA/QaA.css - PHIÊN BẢN SỬA LỖI */
+
+.qna-page-container {
+  max-width: 900px; 
+  margin: 40px auto;  
+  padding: 20px;
+}
+
+.qna-page-title {
+  text-align: left; 
+  margin-bottom: 30px !important; 
+  font-weight: 600 !important;
+}
+
+/* 1. TÙY CHỈNH KHỐI COLLAPSE CHA */
+.qna-collapse.ant-collapse {
+  background-color: transparent !important; /* Xóa nền trắng của khối cha */
+  border: none !important; /* Xóa viền của khối cha */
+}
+
+/* 2. SỬA LỖI BO GÓC KHÔNG ĐỒNG ĐỀU */
+/* * Ghi đè lên các quy tắc :first-child và :last-child của Antd 
+ * Bằng cách nhắm mục tiêu tất cả các item
+ */
+.qna-collapse > .ant-collapse-item,
+.qna-collapse > .ant-collapse-item:first-child,
+.qna-collapse > .ant-collapse-item:last-child {
+  background-color: #ffffff; 
+  border: 1px solid #d9d9d9; 
+  
+  /* Ép tất cả bo góc giống nhau */
+  border-radius: 8px !important; 
+  
+  margin-bottom: 20px !important; 
+  overflow: hidden; 
+}
+
+/* 3. TĂNG CHIỀU CAO VÀ THÊM HOVER CHO HEADER */
+/* * Chúng ta cần nhắm mục tiêu .ant-collapse-header
+ * để tăng chiều cao và thêm hiệu ứng hover
+ */
+.qna-collapse > .ant-collapse-item > .ant-collapse-header {
+  font-weight: 500; 
+  font-size: 18px; 
+  transition: background-color 0.3s ease;
+
+  /* Thêm !important để ép tăng chiều cao */
+  padding-top: 18px !important;    
+  padding-bottom: 18px !important; 
+}
+
+/* Hiệu ứng hover khi di chuột */
+.qna-collapse > .ant-collapse-item > .ant-collapse-header:hover {
+  background-color: #f7f7f7 !important; /* Thêm !important cho chắc chắn */
+}
+
+
+/* 4. TÙY CHỈNH PHẦN NỘI DUNG TRẢ LỜI */
+.qna-collapse > .ant-collapse-item > .ant-collapse-content {
+  border-top: 1px solid #d9d9d9; 
+}
+
+.qna-collapse > .ant-collapse-item > .ant-collapse-content > .ant-collapse-content-box {
+  background-color: white; 
+}
+
+.qna-answer {
+  color: #333; 
+  line-height: 1.6; 
+  font-size: 16px;
+  margin-bottom: 0; 
+}

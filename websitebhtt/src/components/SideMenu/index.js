@@ -1,6 +1,6 @@
 import {
     AppstoreOutlined,
-    QuestionCircleOutlined,
+    
     ShopOutlined,
     ShoppingCartOutlined,
     UserOutlined,

@@ -1,0 +1,195 @@
+/* CONTACT PAGE STYLES */
+
+/* Container tổng thể */
+.contact-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 28px 12px;
+}
+
+/* Banner Liên hệ */
+.contact-banner {
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  background: linear-gradient(180deg, #fff9fb 0%, #f4f6ff 60%);
+  padding: 56px 20px 44px;
+  text-align: center;
+  border-bottom-left-radius: 18px;
+  border-bottom-right-radius: 18px;
+  box-shadow: 0 8px 30px rgba(2, 6, 23, 0.04);
+}
+
+.contact-banner-content {
+  max-width: 1180px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.contact-banner-title {
+  margin-bottom: 8px;
+  color: #0f1724;
+  font-weight: 800;
+  font-size: 28px;
+}
+
+/* Breadcrumb (nếu sử dụng) */
+.contact-banner .ant-breadcrumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.75);
+  padding: 8px 12px;
+  border-radius: 999px;
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.03);
+  margin-top: 12px;
+}
+
+.contact-banner .ant-breadcrumb a,
+.contact-banner .ant-breadcrumb span {
+  color: #374151;
+}
+
+/* Thông tin liên hệ */
+.contact-info {
+  background: transparent;
+}
+
+.contact-info .contact-info-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  color: #374151;
+}
+
+.info-icon {
+  color: #10b981; /* emerald */
+  font-size: 20px;
+  background: rgba(16, 185, 129, 0.08);
+  padding: 8px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.contact-info-title {
+  margin-left: 10px;
+  color: #777;
+  font-size: 14px;
+}
+
+/* CÂN ĐỐI FORM LIÊN HỆ - BỔ SUNG VÀO CONTACT.CSS */
+
+/* 1. Điều chỉnh padding bên trong thẻ Card chứa Form */
+.contact-card {
+  padding: 30px 30px; /* Tăng padding để form có không gian thở (breathing room) */
+  /* Giữ nguyên các thuộc tính box-shadow và border-radius */
+}
+
+/* Tiêu đề Form */
+.contact-card .ant-typography.ant-typography-h3 {
+  /* Title level 3: Send Us a Message */
+  margin-bottom: 25px; /* Tăng khoảng cách dưới tiêu đề */
+  font-weight: 700;
+  color: #0f1724;
+}
+
+/* Khoảng cách giữa các trường Form (Form.Item) */
+.contact-card .ant-form-item {
+  margin-bottom: 22px; /* Tăng khoảng cách giữa các Form.Item */
+}
+
+/* Label (nhãn) của Form */
+.ant-form-item-label > label {
+  font-weight: 600; /* Nhấn mạnh label hơn */
+  font-size: 14px;
+  color: #1f2937;
+}
+
+/* 2. Chiều cao và style cho Input */
+.contact-card .ant-input,
+.contact-card .ant-input-textarea {
+  height: 44px; /* Tăng chiều cao Input lên 44px */
+  padding: 0 14px; /* Căn chỉnh padding ngang */
+  font-size: 15px;
+}
+
+/* CONTACT.CSS - Phần điều chỉnh TextArea */
+
+.input-text-message{
+    height: 80px !important;
+}
+.contact-card .ant-input-textarea {
+  height: auto !important; 
+  /* Tăng chiều cao tối thiểu cho ô nhập liệu dài */
+  min-height: 220px !important; /* TĂNG CHIỀU CAO TỐI THIỂU */
+  padding-top: 10px; 
+  padding-bottom: 10px; 
+}
+
+/* Placeholder text */
+.ant-input::placeholder,
+.ant-input-textarea::placeholder {
+    color: #9ca3af; /* Làm cho placeholder nhẹ nhàng hơn */
+}
+
+/* 3. Điều chỉnh Nút Gửi */
+.contact-card .ant-btn-primary {
+  height: 50px; /* Tăng chiều cao nút */
+  font-size: 16px;
+  /* Giữ nguyên các thuộc tính gradient và shadow */
+}
+
+/* Vùng chứa nút */
+.contact-card .ant-form-item:last-child {
+    margin-bottom: 0; /* Loại bỏ margin dưới cùng nếu đó là Form.Item cuối cùng (nút) */
+}
+
+/* CONTACT.CSS - Cập nhật cho Map Card để làm nổi bật border */
+
+.map-card {
+  background: #fff;
+  border-radius: 14px;
+  
+  /* CẢI THIỆN ĐỘ NỔI BẬT */
+  /* 1. Thêm đường viền mỏng nhưng rõ ràng */
+  border: 1px solid #d1d5db; 
+
+  /* 2. Tăng cường box-shadow để map trông "nổi" hơn */
+  box-shadow: 0 15px 50px rgba(2, 6, 23, 0.1); /* Đổ bóng sâu hơn so với 0.06 */
+  
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  /* Giữ các thuộc tính khác như cũ */
+}
+
+.map-card .map-container {
+  padding: 0;
+  flex: 1 1 auto;
+  display: block;
+}
+
+/* iframe Bản đồ */
+.map-card .map-container iframe {
+  display: block;
+  width: 100%;
+  height: 100%; /* fill the map-card */
+  min-height: 420px; /* ensure a sensible minimum */
+  margin: 0; /* remove previous 20px bottom margin */
+  border: 0;
+}
+
+/* Responsive cho Bản đồ */
+@media (max-width: 768px) {
+  .map-container iframe {
+    height: 340px;
+  }
+  .map-card .map-container iframe {
+    height: 340px;
+  }
+}
+

@@ -1,8 +1,9 @@
+// src/pages/CartProducts.js
 import "../style/CartProducts.css";
-import React from "react";
+import React, { useState } from "react";
 import cartImg from "../assets/images/cart-icon.png";
 import cartGif from "../assets/images/cart.gif";
-import {  useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   Row,
   Col,
@@ -14,6 +15,9 @@ import {
   Space,
   Divider,
   Input,
+  Empty,
+  Rate,
+  Modal,
 } from "antd";
 import {
   TagsOutlined,
@@ -24,35 +28,74 @@ import {
   Loading3QuartersOutlined,
   DeleteOutlined,
 } from "@ant-design/icons";
+import { useCart } from "../context/CartContext"; 
+import { useOrder } from "../context/OrderContext"; // <-- 1. THÊM IMPORT NÀY
+
 const { Title, Text } = Typography;
+
 const CartProducts = () => {
   const navigate = useNavigate();
-  const [value, setValue] = React.useState(1);
+  const [selectAll, setSelectAll] = useState(false);
+  const { cartItems, removeFromCart, updateQuantity, clearCart } = useCart();
+  
+  // === 2. THÊM DÒNG NÀY ĐỂ LẤY SỐ ĐẾM ===
+  const { confirmingCount } = useOrder();
+  // ======================================
+
+  // --- Tính toán tổng tiền (giữ nguyên) ---
+  const subtotal = cartItems.reduce(
+    (acc, item) => acc + item.product.price * item.quantity,
+    0
+  );
+  const discount = subtotal * 0.2;
+  const deliveryFee = subtotal > 0 ? 20 : 0; 
+  const total = subtotal - discount + deliveryFee;
+
+  // --- Hàm xử lý khi nhấn nút Delete (giữ nguyên) ---
+  const handleDeleteClick = () => {
+    if (selectAll && cartItems.length > 0) {
+      Modal.confirm({
+        title: "Xác nhận xóa sản phẩm",
+        content: "Are you sure you want to delete all products?",
+        okText: "Confirm",
+        cancelText: "Cancel",
+        onOk: () => {
+          clearCart(); 
+          setSelectAll(false); 
+        },
+      });
+    }
+  };
+  // --------------------------------
+
   return (
     <div className="shopping-card-page">
+      {/* Phần Cart Gif và Order Status (GIỮ NGUYÊN) */}
       <div className="cart-gif-container">
-  <Image
-    className="cart-gif"
-    src={cartGif}
-    preview={false}
-  />
-  <Title className="shopping-cart-title" level={2}>
-    SHOPPING CART
-  </Title>
-</div>
+        <Image className="cart-gif" src={cartGif} preview={false} />
+        <Title className="shopping-cart-title" level={2}>
+          SHOPPING CART
+        </Title>
+      </div>
 
       <Row gutter={16} className="order-status-shopping">
+        {/* (Các Col status giữ nguyên) */}
         <Col className="order-confirm" span={4}>
           <Text className="order-status-title">Order Status: </Text>
         </Col>
 
+        {/* === 3. THAY ĐỔI DUY NHẤT TẠI ĐÂY === */}
         <Col className="order-confirm" span={4}>
           <div className="checkpoint-col">
-            <Loading3QuartersOutlined style={{ fontSize: 24 }} />
+            {/* Bọc icon "Confirming" trong Badge */}
+            <Badge count={confirmingCount} color="red" offset={[-2, 5]}>
+              <Loading3QuartersOutlined style={{ fontSize: 24 }} />
+            </Badge>
             <Text>Confirming</Text>
             <span className="checkpoint" />
           </div>
         </Col>
+        {/* ================================== */}
 
         <Col className="order-confirm" span={4}>
           <div className="checkpoint-col">
@@ -61,7 +104,6 @@ const CartProducts = () => {
             <span className="checkpoint" />
           </div>
         </Col>
-
         <Col className="order-confirm" span={4}>
           <div className="checkpoint-col">
             <Badge count={3} color="red" offset={[-2, 5]}>
@@ -71,7 +113,6 @@ const CartProducts = () => {
             <span className="checkpoint" />
           </div>
         </Col>
-
         <Col className="order-confirm" span={4}>
           <div className="checkpoint-col">
             <SmileOutlined style={{ fontSize: 24 }} />
@@ -79,7 +120,6 @@ const CartProducts = () => {
             <span className="checkpoint" />
           </div>
         </Col>
-
         <Col className="order-confirm" span={4}>
           <div className="checkpoint-col">
             <Badge count={2} color="red" offset={[-2, 5]}>
@@ -90,11 +130,10 @@ const CartProducts = () => {
           </div>
         </Col>
       </Row>
+      {/* ------------------------------------------ */}
 
+      {/* (Toàn bộ phần còn lại của file giữ nguyên) */}
       <div>
-        {/* <Title level={4} className="your-cart">
-          Your Cart
-        </Title> */}
         <img
           className="cart-img"
           src={cartImg}
@@ -110,127 +149,94 @@ const CartProducts = () => {
           <Col span={15} className="shopping-col-left">
             <div className="select-card">
               <div className="select-card-item">
-                <Checkbox className="select-checkbox">Select All</Checkbox>
-                <Button type="primary" className="delete-cart-button">
+                <Checkbox
+                  className="select-checkbox"
+                  checked={selectAll}
+                  onChange={(e) => setSelectAll(e.target.checked)}
+                >
+                  Select All
+                </Checkbox>
+                <Button
+                  type="primary"
+                  className="delete-cart-button"
+                  onClick={handleDeleteClick}
+                  disabled={!selectAll || cartItems.length === 0}
+                >
                   Delete
                 </Button>
               </div>
             </div>
             <div className="product-card-shopping">
               <div className="product-card-shopping-item">
-                <Row className="item-cart">
-                  <Col span={5} className="item-cart-col">
-                    <img
-                      src="https://lados.vn/wp-content/uploads/2024/09/z4963812344350_f8f0f67dff98e701aa1ccefb3fa339f1.jpg"
-                      alt="Denim Jacket"
-                    />
-                  </Col>
-                  <Col span={10} className="item-cart-col">
-                    <Text className="item-text">Jacket</Text> <br />
-                    <Text className="item-attribute">Size:</Text>
-                    <Text className="item-value"> XL</Text>
-                    <br />
-                    <Text className="item-attribute">Color</Text>
-                    <Text className="item-value"> Blue</Text>
-                    <br />
-                    <Text className="item-price">$145</Text>
-                  </Col>
-                  <Col span={9} className="action-cart">
-                    <DeleteOutlined
-                      className="delete-icon"
-                      style={{ fontSize: "24px" }}
-                    />
-                    <Space className="quantity-product-cart">
-                      <Button
-                        onClick={() =>
-                          setValue((prev) => Math.max(prev - 1, 1))
-                        }
-                      >
-                        -
-                      </Button>
-                      <Text>{value}</Text>
-                      <Button onClick={() => setValue((prev) => prev + 1)}>
-                        +
-                      </Button>
-                    </Space>
-                  </Col>
-                </Row>
-                <Divider />
-                <Row className="item-cart">
-                  <Col span={5} className="item-cart-col">
-                    <img
-                      src="https://lados.vn/wp-content/uploads/2024/09/z4963812344350_f8f0f67dff98e701aa1ccefb3fa339f1.jpg"
-                      alt="Denim Jacket"
-                    />
-                  </Col>
-                  <Col span={10} className="item-cart-col">
-                    <Text className="item-text">Jacket</Text> <br />
-                    <Text className="item-attribute">Size:</Text>
-                    <Text className="item-value"> XL</Text>
-                    <br />
-                    <Text className="item-attribute">Color</Text>
-                    <Text className="item-value"> Blue</Text>
-                    <br />
-                    <Text className="item-price">$145</Text>
-                  </Col>
-                  <Col span={9} className="action-cart">
-                    <DeleteOutlined
-                      className="delete-icon"
-                      style={{ fontSize: "24px" }}
-                    />
-                    <Space className="quantity-product-cart">
-                      <Button
-                        onClick={() =>
-                          setValue((prev) => Math.max(prev - 1, 1))
-                        }
-                      >
-                        -
-                      </Button>
-                      <Text>{value}</Text>
-                      <Button onClick={() => setValue((prev) => prev + 1)}>
-                        +
-                      </Button>
-                    </Space>
-                  </Col>
-                </Row>
-                <Divider />
-                <Row className="item-cart">
-                  <Col span={5} className="item-cart-col">
-                    <img
-                      src="https://lados.vn/wp-content/uploads/2024/09/z4963812344350_f8f0f67dff98e701aa1ccefb3fa339f1.jpg"
-                      alt="Denim Jacket"
-                    />
-                  </Col>
-                  <Col span={10} className="item-cart-col">
-                    <Text className="item-text">Jacket</Text> <br />
-                    <Text className="item-attribute">Size:</Text>
-                    <Text className="item-value"> XL</Text>
-                    <br />
-                    <Text className="item-attribute">Color</Text>
-                    <Text className="item-value"> Blue</Text>
-                    <br />
-                    <Text className="item-price">$145</Text>
-                  </Col>
-                  <Col span={9} className="action-cart">
-                    <DeleteOutlined
-                      className="delete-icon"
-                      style={{ fontSize: "24px" }}
-                    />
-                    <Space className="quantity-product-cart">
-                      <Button
-                        onClick={() =>
-                          setValue((prev) => Math.max(prev - 1, 1))
-                        }
-                      >
-                        -
-                      </Button>
-                      <Text>{value}</Text>
-                      <Button onClick={() => setValue((prev) => prev + 1)}>
-                        +
-                      </Button>
-                    </Space>
-                  </Col>
-                </Row>
+                {cartItems.length === 0 ? (
+                  <Empty description="Your cart is empty" />
+                ) : (
+                  cartItems.map((item) => (
+                    <React.Fragment key={item.product.id}>
+                      <Row className="item-cart">
+                        <Col span={5} className="item-cart-col">
+                          <img
+                            src={item.product.thumbnail}
+                            alt={item.product.title}
+                          />
+                        </Col>
+                        <Col span={10} className="item-cart-col">
+                          <Text className="item-text">
+                            {item.product.title}
+                          </Text>{" "}
+                          <br />
+                          <Text
+                            className="item-attribute"
+                            ellipsis={{ tooltip: item.product.description }}
+                          >
+                            {item.product.description}{" "}
+                          </Text>
+                          <br />
+                          <Rate
+                            disabled
+                            defaultValue={Math.round(item.product.rating)}
+                            style={{ fontSize: 14 }}
+                          />
+                          <br />
+                          <Text className="item-price">
+                            ${item.product.price}
+                          </Text>
+                        </Col>
+                        <Col span={9} className="action-cart">
+                          <DeleteOutlined
+                            className="delete-icon"
+                            style={{ fontSize: "24px" }}
+                            onClick={() => removeFromCart(item.product.id)}
+                          />
+                          <Space className="quantity-product-cart">
+                            <Button
+                              onClick={() =>
+                                updateQuantity(
+                                  item.product.id,
+                                  item.quantity - 1
+                                )
+                              }
+                            >
+                              -
+                            </Button>
+                            <Text>{item.quantity}</Text>
+                            <Button
+                              onClick={() =>
+                                updateQuantity(
+                                  item.product.id,
+                                  item.quantity + 1
+                                )
+                              }
+                            >
+                              +
+                            </Button>
+                          </Space>
+                        </Col>
+                      </Row>
+                      <Divider />
+                    </React.Fragment>
+                  ))
+                )}
               </div>
             </div>
           </Col>
@@ -238,7 +244,7 @@ const CartProducts = () => {
             <div className="sumary-card">
               <div className="sumary-item">
                 <Title level={5} className="order-sumary">
-                  Order Sumary
+                  Order Summary
                 </Title>
                 <div className="coupon-apply">
                   <div className="coupon-left">
@@ -262,11 +268,17 @@ const CartProducts = () => {
                     <Text className="title-price-summary">Delivery Free</Text>
                   </Col>
                   <Col span={12} className="value-price-summary">
-                    <Text className="text-price-summary">$600</Text>
+                    <Text className="text-price-summary">
+                      ${subtotal.toFixed(2)}
+                    </Text>
                     <br />
-                    <Text className="text-discount">$100</Text>
+                    <Text className="text-discount">
+                      -${discount.toFixed(2)}
+                    </Text>
                     <br />
-                    <Text className="text-price-summary">$20</Text>
+                    <Text className="text-price-summary">
+                      ${deliveryFee.toFixed(2)}
+                    </Text>
                     <br />
                   </Col>
                 </Row>
@@ -276,10 +288,14 @@ const CartProducts = () => {
                     Total
                   </Col>
                   <Col className="total-value" span={12}>
-                    $520
+                    ${total.toFixed(2)}
                   </Col>
                 </Row>
-                <Button className="go-to-checkout" type="primary" onClick={() => navigate("/checkout")}>
+                <Button
+                  className="go-to-checkout"
+                  type="primary"
+                  onClick={() => navigate("/checkout")}
+                >
                   Go to Checkout →
                 </Button>
               </div>
@@ -291,213 +307,3 @@ const CartProducts = () => {
   );
 };
 export default CartProducts;
-
-// import React from "react";
-// import {  useNavigate } from "react-router-dom";
-// import {
-//   Typography,
-//   Row,
-//   Col,
-//   Divider,
-//   Space,
-//   Button,
-//   Card,
-// } from "antd";
-
-// const { Title, Text } = Typography;
-
-// const CartProducts = () => {
-//   const [value, setValue] = React.useState(1);
-//   const navigate = useNavigate();
-
-//   return (
-//     <>
-//       <div className="cart-product">
-//         <Title className="title-cart-product">SHOPPING CART</Title>
-//         <div className="cart-product-container">
-//           <Row
-//             className="cart-product-content"
-//             justify="center"
-//             align="middle"
-//             gutter={[16, 16]}
-//           >
-//             {/* LEFT SIDE */}
-//             <Col span={14} className="cart-product-content-left">
-//               <Divider className="divider-left" />
-//               <Row>
-//                 <Col
-//                   className="cart-product-content-left-information"
-//                   span={16}
-//                 >
-//                   <Title level={5} className="cart-product-name-product">
-//                     Men's Stylish Denim Jacket
-//                   </Title>
-//                   <Text className="cart-product-price">5,300,000 VND</Text>
-//                   <br />
-//                   <div className="size-color-cart-product">
-//                     <Text>
-//                       <Text style={{ fontWeight: "bold" }}>Size |</Text> 36
-//                     </Text>
-//                     <br />
-//                     <Text>
-//                       <Text style={{ fontWeight: "bold" }}>Color |</Text> BLUE
-//                     </Text>
-//                     <br />
-//                   </div>
-//                   <Space className="quantity-product-cart">
-//                     <Button
-//                       onClick={() => setValue((prev) => Math.max(prev - 1, 1))}
-//                     >
-//                       -
-//                     </Button>
-//                     <Text>{value}</Text>
-//                     <Button onClick={() => setValue((prev) => prev + 1)}>
-//                       +
-//                     </Button>
-//                   </Space>
-//                 </Col>
-//                 <Col className="cart-product-content-left-image" span={8}>
-//                   <img
-//                     src="https://lados.vn/wp-content/uploads/2024/09/z4963812344350_f8f0f67dff98e701aa1ccefb3fa339f1.jpg"
-//                     alt="Denim Jacket"
-//                   />
-//                 </Col>
-//               </Row>
-
-//               <Divider className="divider-left" />
-//               <Row>
-//                 <Col
-//                   className="cart-product-content-left-information"
-//                   span={16}
-//                 >
-//                   <Title level={5} className="cart-product-name-product">
-//                     Men's Stylish Denim Jacket
-//                   </Title>
-//                   <Text className="cart-product-price">5,300,000 VND</Text>
-//                   <br />
-//                   <div className="size-color-cart-product">
-//                     <Text>
-//                       <Text style={{ fontWeight: "bold" }}>Size |</Text> 36
-//                     </Text>
-//                     <br />
-//                     <Text>
-//                       <Text style={{ fontWeight: "bold" }}>Color |</Text> BLUE
-//                     </Text>
-//                     <br />
-//                   </div>
-//                   <Space className="quantity-product-cart">
-//                     <Button
-//                       onClick={() => setValue((prev) => Math.max(prev - 1, 1))}
-//                     >
-//                       -
-//                     </Button>
-//                     <Text>{value}</Text>
-//                     <Button onClick={() => setValue((prev) => prev + 1)}>
-//                       +
-//                     </Button>
-//                   </Space>
-//                 </Col>
-//                 <Col className="cart-product-content-left-image" span={8}>
-//                   <img
-//                     src="https://lados.vn/wp-content/uploads/2024/09/z4963812344350_f8f0f67dff98e701aa1ccefb3fa339f1.jpg"
-//                     alt="Denim Jacket"
-//                   />
-//                 </Col>
-//               </Row>
-
-//               <Divider className="divider-left" />
-//               <Row>
-//                 <Col
-//                   className="cart-product-content-left-information"
-//                   span={16}
-//                 >
-//                   <Title level={5} className="cart-product-name-product">
-//                     Men's Stylish Denim Jacket
-//                   </Title>
-//                   <Text className="cart-product-price">5,300,000 VND</Text>
-//                   <br />
-//                   <div className="size-color-cart-product">
-//                     <Text>
-//                       <Text style={{ fontWeight: "bold" }}>Size |</Text> 36
-//                     </Text>
-//                     <br />
-//                     <Text>
-//                       <Text style={{ fontWeight: "bold" }}>Color |</Text> BLUE
-//                     </Text>
-//                     <br />
-//                   </div>
-//                   <Space className="quantity-product-cart">
-//                     <Button
-//                       onClick={() => setValue((prev) => Math.max(prev - 1, 1))}
-//                     >
-//                       -
-//                     </Button>
-//                     <Text>{value}</Text>
-//                     <Button onClick={() => setValue((prev) => prev + 1)}>
-//                       +
-//                     </Button>
-//                   </Space>
-//                 </Col>
-//                 <Col className="cart-product-content-left-image" span={8}>
-//                   <img
-//                     src="https://lados.vn/wp-content/uploads/2024/09/z4963812344350_f8f0f67dff98e701aa1ccefb3fa339f1.jpg"
-//                     alt="Denim Jacket"
-//                   />
-//                 </Col>
-//               </Row>
-//             </Col>
-
-//             {/* RIGHT SIDE */}
-//             <Col span={10} className="cart-product-content-right">
-//               <Card className="order-summary-box">
-//                 <Title level={4} className="order-summary-title">
-//                   Order Summary
-//                 </Title>
-//                 <Divider />
-//                 <Row justify="space-between" align="middle" className="subtotal">
-//                   <Col className="subtotal-title">
-//                     <Text>SUBTOTAL</Text>
-//                   </Col>
-//                   <Col className="subtotal-price">
-//                     <Text>5,300,000 VND</Text>
-//                   </Col>
-//                 </Row>
-//                 <Row justify="space-between" align="middle" className="shipping">
-//                   <Col className="shipping-title">
-//                     <Text>SHIPPING</Text>
-//                   </Col>
-//                   <Col className="shipping-price">
-//                     <Text>Free</Text>
-//                   </Col>
-//                 </Row>
-//                 <Row justify="space-between" align="middle" className="postage">
-//                   <Col className="postage-title">
-//                     <Text>POSTAGE</Text>
-//                   </Col>
-//                   <Col className="postage-price">
-//                     <Text>2,500,000 VND</Text>
-//                   </Col>
-//                 </Row>
-//                 <Divider />
-//                 <Row justify="space-between" align="middle" className="total">
-//                   <Col className="total-title">
-//                     <Text>TOTAL</Text>
-//                   </Col>
-//                   <Col className="total-price">
-//                     <Text>2,500,000 VND</Text>
-//                   </Col>
-//                 </Row>
-//                 <Divider />
-//                 <Button className="checkout-button" type="primary" block onClick={() => navigate("/checkout")}>
-//                   Proceed to Checkout
-//                 </Button>
-//               </Card>
-//             </Col>
-//           </Row>
-//         </div>
-//       </div>
-//     </>
-//   );
-// };
-
-// export default CartProducts;

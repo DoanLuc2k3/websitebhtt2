@@ -66,3 +66,35 @@
     transform: translateY(0);
   }
 }
+
+/* --- DÁN PHẦN NÀY VÀO CUỐI FILE Categories.css --- */
+
+.category-products {
+ 
+  padding: 0;
+  margin: 0;
+  margin-top: 10px; /* Khoảng cách với tiêu đề */
+}
+
+.category-product {
+ font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  padding: 6px 0; /* Dùng padding thay vì margin-bottom */
+  /* === 4 DÒNG MỚI ĐỂ THÊM "..." === */
+  width: 90%; /* Giới hạn chiều rộng của chữ */
+  white-space: nowrap; /* Ngăn không cho xuống dòng */
+  overflow: hidden; /* Ẩn phần chữ bị thừa */
+  text-overflow: ellipsis; /* Hiện dấu "..." */
+}
+
+
+.category-product:hover {
+  color: #1677ff; /* Màu xanh khi hover */
+}
+.category-product-loading {
+  list-style-type: none;
+  padding: 10px 0;
+  text-align: center;
+}

@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import "../style/Checkout.css";
-import logoImg from "../assets/images/logo2.jpg";
+
 import {
   Layout,
   Row,
@@ -8,41 +8,116 @@ import {
   Typography,
   Form,
   Input,
-  Select,
+
   DatePicker,
   Radio,
-  Space,
   Button,
   Divider,
+  Result,
+  Descriptions,
 } from "antd";
-import { ShoppingCartOutlined } from "@ant-design/icons";
+
 import { useNavigate } from "react-router-dom";
+import { useCart } from "../context/CartContext";
+
 const { Title, Text } = Typography;
-const { Option } = Select;
+
+
 const Checkout = () => {
   const navigate = useNavigate();
-  const [value, setValue] = React.useState(1);
   const [showSuccess, setShowSuccess] = React.useState(false);
-  const handleConfirmOrder = () => {
-    setShowSuccess(true);
+
+  // State (giữ nguyên)
+  const [orderedItems, setOrderedItems] = useState([]);
+  const [orderTotals, setOrderTotals] = useState({
+    total: 0,
+    discount: 0,
+    shipping: 0,
+  });
+  const [deliveryInfo, setDeliveryInfo] = useState(null);
+
+  const [deliveryForm] = Form.useForm();
+  const [scheduleForm] = Form.useForm();
+  const [paymentForm] = Form.useForm();
+
+  const { cartItems, clearCart } = useCart();
+
+  // Logic tính toán (giữ nguyên)
+  const subtotal = cartItems.reduce(
+    (acc, item) => acc + item.product.price * item.quantity,
+    0
+  );
+  const discount = subtotal * 0.2;
+  const deliveryFee = subtotal > 0 ? 20 : 0;
+  const total = subtotal - discount + deliveryFee;
+
+  // CẬP NHẬT HÀM NÀY (Giữ nguyên logic sửa lỗi date)
+  const handleConfirmOrder = async () => {
+    try {
+      // Validate và lấy giá trị từ 3 form
+      const deliveryValues = await deliveryForm.validateFields();
+      const scheduleValues = await scheduleForm.validateFields();
+      const paymentValues = await paymentForm.validateFields();
+
+      // Gom tất cả thông tin form lại
+      const allFormInfo = {
+        ...deliveryValues,
+        ...scheduleValues,
+        ...paymentValues,
+      };
+
+      // ===== SỬA LỖI "INVALID DATE" =====
+      // Chuyển đổi đối tượng 'dayjs' thành chuỗi ISO string chuẩn
+      if (allFormInfo.date) {
+        allFormInfo.date = allFormInfo.date.toISOString();
+      }
+      // ===================================
+
+      // LƯU LẠI TẤT CẢ THÔNG TIN
+      setOrderedItems([...cartItems]); // Lưu sản phẩm
+      setOrderTotals({
+        // Lưu tổng tiền
+        total: total,
+        discount: discount,
+        shipping: deliveryFee,
+        subtotal: subtotal,
+      });
+      setDeliveryInfo(allFormInfo); // Lưu thông tin giao hàng (với date đã là string)
+
+      setShowSuccess(true);
+      clearCart(); // Xóa giỏ hàng
+    } catch (errorInfo) {
+      console.log("Validation Failed:", errorInfo);
+    }
   };
+
   const handleClosePopup = () => {
     setShowSuccess(false);
+    navigate("/");
   };
+
   return (
     <Layout className="checkout-page">
       <Row className="checkout" gutter={16}>
+        {/* CỘT TRÁI */}
         <Col className="checkout-col-left" span={14}>
           <Title level={5} className="delivery-information-title">
             Delivery Information
           </Title>
-          <Form className="delivery-information-form" layout="vertical">
+          <Form
+            form={deliveryForm}
+            className="delivery-information-form"
+            layout="vertical"
+          >
+            {/* Hàng 1: Name và Phone */}
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item
                   name="name"
                   label="Name"
-                  rules={[{ required: true }]}
+                  rules={[
+                    { required: true, message: "Please enter your name" },
+                  ]}
                 >
                   <Input placeholder="Enter your name"></Input>
                 </Form.Item>
@@ -51,18 +126,24 @@ const Checkout = () => {
                 <Form.Item
                   name="phone"
                   label="Phone"
-                  rules={[{ required: true }]}
+                  rules={[
+                    { required: true, message: "Please enter your phone" },
+                  ]}
                 >
                   <Input placeholder="Enter your Number"></Input>
                 </Form.Item>
               </Col>
             </Row>
+            {/* Hàng 2: Email và City */}
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item
                   name="email"
                   label="Email"
-                  rules={[{ required: true }]}
+                  rules={[
+                    { required: true, message: "Please enter your email" },
+                    { type: "email", message: "Invalid email format" },
+                  ]}
                 >
                   <Input placeholder="Enter your Email"></Input>
                 </Form.Item>
@@ -71,201 +152,169 @@ const Checkout = () => {
                 <Form.Item
                   name="city"
                   label="City"
-                  rules={[{ required: true }]}
+                  rules={[{ required: true, message: "Please enter your city" }]}
                 >
                   <Input placeholder="Enter your City"></Input>
                 </Form.Item>
               </Col>
             </Row>
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  name="state"
-                  label="State"
-                  rules={[{ required: true }]}
-                >
-                  <Input placeholder="Vietnam"></Input>
-                </Form.Item>
-              </Col>
-              <Col span={6}>
-                <Form.Item name="zip" label="Zip">
-                  <Input placeholder="001122"></Input>
-                </Form.Item>
-              </Col>
-              <Col span={6}>
-                <Form.Item name="shortState" label="State (abbr)">
-                  <Select placeholder="CA">
-                    <Option value="ca">CA</Option>
-                    <Option value="vn">VN</Option>
-                    <Option value="phi">Phi</Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-            </Row>
+            {/* Hàng 3: Address (Full width) - Đã chuyển lên trên */}
             <Row gutter={16}>
               <Col span={24}>
                 <Form.Item
                   name="address"
                   label="Address"
-                  rules={[{ required: true }]}
+                  rules={[
+                    { required: true, message: "Please enter your address" },
+                  ]}
                 >
-                  <Input placeholder="Enter your Address"></Input>
+                  <Input placeholder="Enter your house number and street name"></Input>
                 </Form.Item>
               </Col>
             </Row>
+            {/* Hàng 4: State/Province và Zip/Postal Code - Đã gộp và đơn giản hóa */}
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  name="state"
+                  label="State/Province"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please enter your state/province",
+                    },
+                  ]}
+                >
+                  <Input placeholder="e.g., Vietnam"></Input>
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item name="zip" label="Zip/Postal Code">
+                  <Input placeholder="e.g., 001122"></Input>
+                </Form.Item>
+              </Col>
+              {/* Đã loại bỏ trường State (abbr) */}
+            </Row>
           </Form>
+
           <Title level={5} className="schedule-delivery-title">
             Schedule Delivery
           </Title>
-          <Form className="schedule-delivery-form" layout="vertical">
+          <Form
+            form={scheduleForm}
+            className="schedule-delivery-form"
+            layout="vertical"
+          >
+            {/* Giữ nguyên: Date Picker */}
             <Row gutter={16}>
               <Col className="schedule-delivery-dates" span={24}>
                 <Form.Item
                   name="date"
                   label="Date"
-                  rules={[{ required: true }]}
+                  rules={[
+                    { required: true, message: "Please select a date" },
+                  ]}
                 >
                   <DatePicker style={{ width: "100%" }} />
                 </Form.Item>
               </Col>
             </Row>
+            {/* Giữ nguyên: Note */}
             <Row gutter={16}>
               <Col className="schedule-delivery-note" span={24}>
-                <Form.Item
-                  name="note"
-                  label="Note"
-                  rules={[{ required: true }]}
-                >
-                  <Input placeholder="Enter your note"></Input>
+                <Form.Item name="note" label="Note" rules={[{ required: false }]}>
+                  <Input.TextArea placeholder="Enter your note (e.g., call before delivery)" />
                 </Form.Item>
               </Col>
             </Row>
           </Form>
+
           <Title level={5} className="schedule-delivery-title">
             Payment Method
           </Title>
-          <Form className="payment-method-form" layout="vertical">
+          <Form
+            form={paymentForm}
+            className="payment-method-form"
+            layout="vertical"
+          >
+            {/* Giữ nguyên: Payment Radio Group */}
             <Form.Item
               className="payment-method-form-item"
               name="payment"
               label=""
-              rules={[{ required: true }]}
+              rules={[
+                { required: true, message: "Please select a payment method" },
+              ]}
             >
               <Radio.Group>
-                <Radio value="Online Payment">Online Payment</Radio>
-                <Radio value="Card on Delivery">Card on Delivery</Radio>
-                <Radio value="POS on Delivery">POS on Delivery</Radio>
+                <Radio value="Online Payment">Online Payment (Credit/Debit Card)</Radio>
+                <Radio value="Card on Delivery">Card on Delivery (POS)</Radio>
+                <Radio value="Cash on Delivery">Cash on Delivery</Radio>
               </Radio.Group>
             </Form.Item>
           </Form>
         </Col>
 
-        {/* <Form className="checkout-col-right-form"> */}
+        {/* CỘT PHẢI - (Giữ nguyên) */}
         <Col className="checkout-col-right" span={10}>
           <Title level={5} className="order-summary-title">
             Order Summary
           </Title>
           <Form className="checkout-col-right-form">
-            <Row className="order-summary-row" gutter={16}>
-              <Col className="order-summary-col-image" span={5}>
-                <img
-                  className=""
-                  src="https://lados.vn/wp-content/uploads/2024/09/z4963812344350_f8f0f67dff98e701aa1ccefb3fa339f1.jpg"
-                  alt=""
-                />
-              </Col>
-              <Col className="order-summary-col-content" span={14}>
-                <Text className="order-summary-content-name">Jacket</Text>
-                <br />
-                <Text className="order-summary-content-code">TOASB-2S</Text>
-                <br />
-                <Text className="order-summary-content-price">
-                  2.500.000 VND
-                </Text>
-              </Col>
-              <Col className="order-summary-col-quality" span={5}>
-                <Space className="quantity-product-cart">
-                  <Button
-                    onClick={() => setValue((prev) => Math.max(prev - 1, 1))}
-                  >
-                    -
-                  </Button>
-                  <Text>{value}</Text>
-                  <Button onClick={() => setValue((prev) => prev + 1)}>
-                    +
-                  </Button>
-                </Space>
-              </Col>
-            </Row>
-            <Row className="order-summary-row" gutter={16}>
-              <Col className="order-summary-col-image" span={5}>
-                <img
-                  className=""
-                  src="https://lados.vn/wp-content/uploads/2024/09/z4963812344350_f8f0f67dff98e701aa1ccefb3fa339f1.jpg"
-                  alt=""
-                />
-              </Col>
-              <Col className="order-summary-col-content" span={14}>
-                <Text className="order-summary-content-name">Jacket</Text>
-                <br />
-                <Text className="order-summary-content-code">TOASB-2S</Text>
-                <br />
-                <Text className="order-summary-content-price">
-                  2.500.000 VND
-                </Text>
-              </Col>
-              <Col className="order-summary-col-quality" span={5}>
-                <Space className="quantity-product-cart">
-                  <Button
-                    onClick={() => setValue((prev) => Math.max(prev - 1, 1))}
-                  >
-                    -
-                  </Button>
-                  <Text>{value}</Text>
-                  <Button onClick={() => setValue((prev) => prev + 1)}>
-                    +
-                  </Button>
-                </Space>
-              </Col>
-            </Row>
-            <Row className="order-summary-row" gutter={16}>
-              <Col className="order-summary-col-image" span={5}>
-                <img
-                  className=""
-                  src="https://lados.vn/wp-content/uploads/2024/09/z4963812344350_f8f0f67dff98e701aa1ccefb3fa339f1.jpg"
-                  alt=""
-                />
-              </Col>
-              <Col className="order-summary-col-content" span={14}>
-                <Text className="order-summary-content-name">Jacket</Text>
-                <br />
-                <Text className="order-summary-content-code">TOASB-2S</Text>
-                <br />
-                <Text className="order-summary-content-price">
-                  2.500.000 VND
-                </Text>
-              </Col>
-              <Col className="order-summary-col-quality" span={5}>
-                <Space className="quantity-product-cart">
-                  <Button
-                    onClick={() => setValue((prev) => Math.max(prev - 1, 1))}
-                  >
-                    -
-                  </Button>
-                  <Text>{value}</Text>
-                  <Button onClick={() => setValue((prev) => prev + 1)}>
-                    +
-                  </Button>
-                </Space>
-              </Col>
-            </Row>
-            <Divider style={{ marginTop: "190px" }} />
+            {/* ... (Hiển thị sản phẩm động - giữ nguyên) ... */}
+            {cartItems.map((item) => (
+              <Row
+                className="order-summary-row"
+                gutter={16}
+                key={item.product.id}
+              >
+                <Col className="order-summary-col-image" span={5}>
+                  <img
+                    className=""
+                    src={item.product.thumbnail}
+                    alt={item.product.title}
+                  />
+                </Col>
+                <Col className="order-summary-col-content" span={14}>
+                  <Text className="order-summary-content-name">
+                    {item.product.title}
+                  </Text>
+                  <br />
+                  <Text className="order-summary-content-code">
+                    {item.product.category}
+                  </Text>
+                  <br />
+                  <Text className="order-summary-content-price">
+                    ${item.product.price}
+                  </Text>
+                </Col>
+                <Col className="order-summary-col-quality" span={5}>
+                  <Text style={{ fontSize: 16 }}>Qty: {item.quantity}</Text>
+                </Col>
+              </Row>
+            ))}
+
+            <Divider style={{ marginTop: "20px" }} />
+
+            {/* ... (Tính tiền động - giữ nguyên) ... */}
             <Row className="subtotal-price-checkout" gutter={16}>
               <Col className="subtotal-price-checkout-title" span={12}>
                 <Text>Subtotal</Text>
               </Col>
               <Col className="subtotal-price-checkout-content" span={12}>
-                <Text>2.500.000 VND</Text>
+                <Text>${subtotal.toFixed(2)}</Text>
+              </Col>
+            </Row>
+            <Row className="subtotal-price-checkout" gutter={16}>
+              <Col className="subtotal-price-checkout-title" span={12}>
+                <Text style={{ color: "red" }}>Discount(-20%)</Text>
+              </Col>
+              <Col
+                className="subtotal-price-checkout-content"
+                span={12}
+                style={{ color: "red" }}
+              >
+                <Text type="danger">-${discount.toFixed(2)}</Text>
               </Col>
             </Row>
             <Row className="subtotal-price-checkout" gutter={16}>
@@ -273,7 +322,7 @@ const Checkout = () => {
                 <Text>Shipping</Text>
               </Col>
               <Col className="subtotal-price-checkout-content" span={12}>
-                <Text>0 VND</Text>
+                <Text>${deliveryFee.toFixed(2)}</Text>
               </Col>
             </Row>
             <Row className="total-price-checkout" gutter={16}>
@@ -281,58 +330,76 @@ const Checkout = () => {
                 <Text>Total</Text>
               </Col>
               <Col className="total-price-checkout-content" span={12}>
-                <Text>2.500.000 VND VND</Text>
+                <Text>${total.toFixed(2)}</Text>
               </Col>
             </Row>
             <Button
               type="primary"
               className="confirm-order-button"
               onClick={handleConfirmOrder}
+              disabled={cartItems.length === 0}
             >
               Confirm Order
             </Button>
           </Form>
         </Col>
-        {/* </Form> */}
       </Row>
-      {/* ✅ Popup overlay */}
+
+      {/* POPUP (Giữ nguyên) */}
       {showSuccess && (
         <div className="order-success-overlay">
           <div className="order-success-div">
-            <Row className="order-success">
-              <Col className="success-left" span={6}>
-                <img src={logoImg} alt="success" style={{ width: "150px" }} />
-              </Col>
-              <Col className="success-right" span={18}>
-                <Title className="thank-title" level={4}>
-             🎉 Order placed successfully!
-                </Title>
-                <Text className="text-success">Your order ID: </Text>
-                <div className="id-order-succcess">#LM20251027</div>
-                <br />
-                <Text className="text-success">You can </Text>
-                <Text className="review-your-order" onClick={() => navigate("/revieworder")}>Review your order</Text>
-                <br />
-                <Text className="text-success">
-                  Estimated delivery date <ShoppingCartOutlined />:{" "}
-                  <b>Friday, Oct 30, 2025</b>
-                </Text>
-                <br />
-                <Text className="text-success">
-                  Detailed information has been sent to your email:
-                  <b> user@gmail.com </b>
-                </Text>
-                <div className="text-success" style={{ marginTop: "10px" }}>
-                  Please check your <b>Spam</b> folder if you don’t see the
-                  email.
-                </div>
-                <div style={{ marginTop: "20px" }}>
-                  <Button type="primary" onClick={handleClosePopup}>
-                    Close
+            <Result
+              status="success"
+              title="Thank you for your order!"
+              subTitle={
+                <>
+                  <Text className="text-success">Your order ID: </Text>
+                  <div className="id-order-succcess">#LM20251027</div>
+                </>
+              }
+              extra={
+                <div className="order-success-details">
+                  <Descriptions column={1} size="default" bordered>
+                    <Descriptions.Item label="Estimated Delivery">
+                      <b>Friday, Oct 30, 2025</b>
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Email Sent To">
+                      <b>{deliveryInfo?.email || "user@gmail.com"}</b>
+                    </Descriptions.Item>
+                  </Descriptions>
+
+                  <Text className="spam-warning">
+                    Please check your <b>Spam</b> folder if you don’t see the
+                    email.
+                  </Text>
+
+                  <Text
+                    className="review-your-order"
+                    onClick={() =>
+                      navigate("/revieworder", {
+                        state: {
+                          items: orderedItems,
+                          totals: orderTotals,
+                          delivery: deliveryInfo,
+                        },
+                      })
+                    }
+                  >
+                    Review your order
+                  </Text>
+
+                  <Button
+                    type="primary"
+                    onClick={handleClosePopup}
+                    size="large"
+                    style={{ marginTop: 24, width: "100%" }}
+                  >
+                    Continue Shopping
                   </Button>
                 </div>
-              </Col>
-            </Row>
+              }
+            />
           </div>
         </div>
       )}

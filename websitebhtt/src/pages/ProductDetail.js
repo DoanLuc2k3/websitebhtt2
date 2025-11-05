@@ -1,3 +1,6 @@
+// src/pages/ProductDetail.js
+import "../style/ProductDetail.css"; 
+
 import {
   Layout,
   Row,
@@ -5,155 +8,234 @@ import {
   Image,
   Typography,
   Space,
-  Radio,
   Button,
-
+  Rate,
+  Empty,
+  message, 
 } from "antd";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ShoppingCartOutlined, MoneyCollectOutlined } from "@ant-design/icons";
+import { useLocation, useNavigate } from "react-router-dom"; 
+import { useCart } from "../context/CartContext"; 
 
 const { Title, Text } = Typography;
 
 const ProductDetail = () => {
-  const images = [
-    "https://lados.vn/wp-content/uploads/2024/09/z4963812344350_f8f0f67dff98e701aa1ccefb3fa339f1.jpg",
-    "https://lados.vn/wp-content/uploads/2024/09/z4963812344350_f8f0f67dff98e701aa1ccefb3fa339f1.jpg",
-    "https://lados.vn/wp-content/uploads/2024/09/z4963812344350_f8f0f67dff98e701aa1ccefb3fa339f1.jpg",
-    "https://lados.vn/wp-content/uploads/2024/09/z4963812344350_f8f0f67dff98e701aa1ccefb3fa339f1.jpg",
-  ];
+  const navigate = useNavigate(); 
+  const location = useLocation(); 
+  
+  const product = location.state; 
 
-  const [mainImage, setMainImage] = useState(images[0]);
-  const [color, setColor] = useState("green");
-  const [value, setValue] = React.useState(1);
-  const [size, setSize] = useState("M");
-  const sizes = ["S", "M", "L", "XL", "XXL"];
+  const [value, setValue] = useState(1);
+  const [mainImage, setMainImage] = useState(null);
+  const [thumbnails, setThumbnails] = useState([]);
+  
+  const { addToCart } = useCart(); 
 
-  const colors = [
-    { name: "blue", code: "#4f6df5" },
-    { name: "green", code: "#43d49e" },
-    { name: "red", code: "#f54d4d" },
-    { name: "yellow", code: "#f5c04f" },
-  ];
+  const availableStock = product ? (product.stock || 50) : 0; 
+
+  useEffect(() => {
+    if (product) {
+      setMainImage(product.thumbnail);
+      setThumbnails(product.images || [product.thumbnail]);
+    }
+  }, [product]);
+
+  if (!product) {
+    return (
+      <div style={{ padding: "100px", textAlign: "center" }}>
+        <Empty description="Không tìm thấy sản phẩm. Đang quay về...">
+          {setTimeout(() => navigate("/products"), 2000)}
+        </Empty>
+      </div>
+    );
+  }
+
+  const handleIncrease = () => {
+    setValue((prev) => Math.min(prev + 1, availableStock));
+  };
+
+  const handleDecrease = () => {
+    setValue((prev) => Math.max(prev - 1, 1));
+  };
+
+  const checkValidity = () => {
+    if (!product || value <= 0 || availableStock === 0 || value > availableStock) {
+        message.warning('Vui lòng chọn số lượng hợp lệ.');
+        return false;
+    }
+    return true;
+  };
+
+  // HÀM XỬ LÝ THÊM VÀO GIỎ HÀNG
+  const handleAddToCart = () => {
+    if (!checkValidity()) return;
+    
+    addToCart(product, value);
+    message.success(`Đã thêm ${value} sản phẩm "${product.title}" vào giỏ hàng!`);
+  };
+  
+  // HÀM XỬ LÝ MUA NGAY (BUY IT NOW)
+  const handleBuyNow = () => {
+    if (!checkValidity()) return;
+
+    // 1. Thêm sản phẩm vào giỏ hàng (để đảm bảo Checkout thấy sản phẩm)
+    addToCart(product, value);
+    
+    // 2. Chuyển hướng tới trang Checkout
+    message.info('Chuyển hướng đến trang thanh toán...');
+    navigate('/checkout'); 
+  };
+  // ==========================================
+
 
   return (
-    <Layout className="product-detail-layout">
-      <Row className="product-detail" gutter={32}>
-        <Col span={12}>
-          <Row gutter={16}>
-            <Col span={4}>
-              <Row gutter={[8, 8]}>
-                {images.map((img, index) => (
-                  <Col key={index} span={24}>
-                    <Image
-                      width={80}
-                      src={img}
-                      preview={false}
-                      style={{
-                        cursor: "pointer",
-                        border:
-                          img === mainImage
-                            ? "2px solid #1677ff"
-                            : "1px solid #ddd",
-                        borderRadius: 8,
-                      }}
-                      onClick={() => setMainImage(img)}
-                    />
-                  </Col>
-                ))}
-              </Row>
-            </Col>
-
-            <Col span={20}>
-              <Image.PreviewGroup>
+    <Layout className="product-detail-page" style={{ padding: "40px 20px" }}>
+      <Row gutter={[32, 32]}>
+        {/* === CỘT BÊN TRÁI (HÌNH ẢNH) === */}
+        <Col xs={24} md={12}>
+          <div 
+            className="product-images" 
+            style={{ 
+              display: 'flex', 
+              gap: '16px' 
+            }}
+          >
+            <Space
+              direction="vertical"
+              className="thumbnail-images"
+              style={{ flexShrink: 0 }}
+            >
+              {thumbnails.map((img, index) => ( 
                 <Image
-                  src={mainImage}
-                  width="100%"
+                  key={index}
+                  src={img} 
+                  alt={`thumbnail ${index + 1}`}
+                  preview={false}
                   style={{
-                    borderRadius: 12,
-                    boxShadow: "0 2px 10px rgba(0,0,0,0.15)",
+                    width: 80,
+                    height: 80,
+                    objectFit: "cover",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    border:
+                      mainImage === img
+                        ? "2px solid #1890ff"
+                        : "1px solid #f0f0f0",
                   }}
+                  onClick={() => setMainImage(img)}
                 />
-              </Image.PreviewGroup>
-            </Col>
-          </Row>
+              ))}
+            </Space>
+
+            <Image
+              className="main-product-image"
+              src={mainImage} 
+              alt={product.title} 
+              style={{
+                width: "100%",
+                flexGrow: 1,
+                minWidth: 0,
+                borderRadius: "8px",
+                border: "1px solid #f0f0f0",
+                height: 400, 
+                objectFit: 'cover', 
+              }}
+            />
+          </div>
         </Col>
 
-        <Col className="product-detail-info" span={12}>
-          <Space>
-            <Title level={3} className="product-detail-info-title">
-              Men's Stylish Denim Jacket
-            </Title>
-            <Text className="rate-text">⭐5.0</Text>
-          </Space>
-
-          <Title className="product-detail-info-price" level={4}>2.500.000 VND</Title>
-
-          <Text className="text-rate-info">
-            Pay in 4 interest free installment for orders over 1.000.000 VND
-            with shop
+        {/* === CỘT BÊN PHẢI (THÔNG TIN) === */}
+        <Col xs={24} md={12}>
+          <Title level={3}>{product.title}</Title>
+          <Text type="secondary" style={{ textTransform: 'capitalize' }}>
+            Thương hiệu: {product.brand || 'N/A'}
           </Text>
 
-          <br />
-          <Text strong className="select-color">
-            Select Color
-          </Text>
-
-          <div className="color-selector">
-            {colors.map((c) => (
-              <div
-                key={c.name}
-                className={`color-circle ${color === c.name ? "selected" : ""}`}
-                style={{ backgroundColor: c.code }}
-                onClick={() => setColor(c.name)}
-              />
-            ))}
+          <div style={{ margin: "16px 0" }}>
+            <Text strong className="product-price" style={{ fontSize: 24, color: '#d0021b' }}>
+              ${product.price.toFixed(2)}
+            </Text>
+            {product.discountPercentage > 0 && (
+              <Text delete style={{ marginLeft: 12, fontSize: 16 }}>
+                $
+                {(
+                  product.price /
+                  (1 - product.discountPercentage / 100)
+                ).toFixed(2)}
+              </Text>
+            )}
           </div>
-          <Text strong className="select-size">
-            Select Size
+
+          <Rate
+            disabled
+            allowHalf
+            defaultValue={product.rating}
+            style={{ marginBottom: 16 }}
+          />
+
+          {/* === HIỂN THỊ SỐ LƯỢNG TỒN KHO === */}
+          <Text strong style={{ display: 'block', marginBottom: '8px' }}>
+            Tồn kho: 
+            <Text style={{ marginLeft: 8, color: availableStock > 10 ? '#389e0d' : availableStock > 0 ? '#faad14' : '#cf1322' }}>
+                {availableStock > 0 ? `${availableStock} sản phẩm` : 'Hết hàng'}
+            </Text>
           </Text>
-          <div style={{ marginTop: 16 }}>
-            <Radio.Group
-              onChange={(e) => setSize(e.target.value)}
-              value={size}
-              className="size-radio-group"
-            >
-              {sizes.map((s) => (
-                <Radio.Button key={s} value={s}>
-                  {s}
-                </Radio.Button>
-              ))}
-            </Radio.Group>
+          {/* ================================== */}
+
+
+          {/* === SỬA LỖI VÀ CĂN CHỈNH VỊ TRÍ NÚT TĂNG GIẢM === */}
+          <div className="select-quantity">
+            <Text strong>
+              Số lượng mua
+            </Text>
+            <Space className="quantity-product-cart" style={{ marginBottom: 0 }}> 
+              <Button 
+                  onClick={handleDecrease}
+                  disabled={value === 1}
+              >
+                -
+              </Button>
+              <Text className="ant-typography" style={{ margin: '0 10px' }}>{value}</Text>
+              <Button 
+                  onClick={handleIncrease}
+                  disabled={value >= availableStock || availableStock === 0}
+              >
+                  +
+              </Button>
+            </Space>
           </div>
-          <Text strong className="select-quanlity">
-            Quanlity
-          </Text>
-          <Space className="quantity-product-cart">
-            <Button onClick={() => setValue((prev) => Math.max(prev - 1, 1))}>
-              -
-            </Button>
-            <Text>{value}</Text>
-            <Button onClick={() => setValue((prev) => prev + 1)}>+</Button>
-          </Space>
-          <Row className="primary-buy" gutter={16}>
+          {/* ================================== */}
+
+
+          <Row className="primary-buy" gutter={16} style={{ marginTop: '24px' }}>
             <Col span={12} className="add-to-cart">
-              <Button className="add-to-cart-button">
-                {" "}
-                <ShoppingCartOutlined /> Add to cart
+              <Button 
+                className="add-to-cart-button"
+                style={{ width: '100%', height: 48, fontSize: 16 }}
+                icon={<ShoppingCartOutlined />}
+                disabled={availableStock === 0} 
+                onClick={handleAddToCart} 
+              >
+                Add to cart
               </Button>
             </Col>
             <Col span={12} className="buy-now">
-              <Button className="buy-now-button" type="primary">
-                <MoneyCollectOutlined />
+              <Button
+                className="buy-now-button"
+                type="primary"
+                style={{ width: '100%', height: 48, fontSize: 16 }}
+                icon={<MoneyCollectOutlined />}
+                disabled={availableStock === 0} 
+                onClick={handleBuyNow} /* <--- GẮN HANDLER MỚI VÀO NÚT */
+              >
                 Buy it now
               </Button>
             </Col>
           </Row>
-          <div>
-            <Text className="text-product-info">
-            Celebrate the power and simplicity of the Swoosh. This warm brushed
-            fleece hoodie made with some extra room through the shoulder
-          </Text>
-          {/* <Divider/> */}
+          
+          <div style={{ marginTop: 24 }}>
+            <Text className="text-product-info">{product.description}</Text>
           </div>
         </Col>
       </Row>

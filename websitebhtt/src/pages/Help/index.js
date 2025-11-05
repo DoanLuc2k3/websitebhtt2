@@ -23,7 +23,7 @@ import {
     SyncOutlined,
     QuestionCircleOutlined,
     MessageOutlined,
-    MailOutlined,
+   
     PhoneOutlined,
     SearchOutlined, 
     ToolOutlined, 

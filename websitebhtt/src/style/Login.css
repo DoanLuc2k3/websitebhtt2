@@ -1,9 +1,20 @@
+/* Tên file: src/style/Login.css */
+
+/* === PHẦN LAYOUT (Từ Login.css gốc) === */
 .login {
   display: flex;
   justify-content: center; /* Căn giữa ngang */
   align-items: center; /* Căn giữa dọc */
-  height: 100vh; /* Chiếm toàn bộ chiều cao màn hình */
-  background: none;
+  
+  /* === TÍCH HỢP TỪ .login-page (trong style.css) === */
+  background-image: url("../assets/images/profile-banner2.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+  padding: 60px 20px;
+
+  /* ================================================ */
 }
 
 .login-row {
@@ -13,6 +24,9 @@
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  margin-top: 100px;
+  /* Style .login-row (width: 500px) từ style.css đã bị bỏ qua
+     để ưu tiên style gốc (width: 80%) của bạn */
 }
 
 .login-col-left {
@@ -49,4 +63,59 @@
   padding-top: 20px;
   padding-left: 10px;
   padding-right: 10px;
+}
+
+/* === PHẦN NỘI DUNG (Tích hợp từ style.css) === */
+
+/* Các style này được dùng trong Login.js gốc */
+.or-login {
+  display: block;
+  text-align: center;
+  color: #888;
+  margin-top: 8px;
+}
+.login-with .ant-btn {
+  border-radius: 8px;
+}
+.btn-login-google {
+  background: #fff;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+}
+.btn-login-google .anticon {
+  margin-right: 6px;
+}
+.btn-login-facebook {
+  background: #fff;
+  border: 1px solid #3b82f6;
+  color: #3b82f6;
+}
+.btn-login-facebook .anticon {
+  margin-right: 6px;
+}
+.login-title {
+  display: block;
+  text-align: center;
+  margin-bottom: 25px !important;
+  font-weight: bold !important;
+  font-size: 30px !important;
+  color: #00c6ff !important;
+}
+.dont-have-account {
+  display: block;
+  text-align: center;
+  color: #888;
+  margin-top: 8px;
+}
+
+/* ===== PHẦN SỬA LỖI (THÊM MỚI) ===== */
+/* Class này được thêm vào file Login.js.
+  Nó sẽ "reset" lại các style toàn cục (từ style.css) 
+  đang áp dụng box-shadow và height cho các Form.Item chỉ chứa link/text.
+*/
+.form-item-no-style .ant-form-item-control-input-content > * {
+  background: none;
+  box-shadow: none;
+  border: none;
+  height: auto; /* Quan trọng: Reset lại chiều cao 40px */
 }

@@ -154,14 +154,15 @@ body {
   align-items: center;
   gap: 8px;
   cursor: pointer;
+   overflow: visible; 
 
 }
 
 .header-logo img {
-  width: 60px;
+  width: auto;
   height: 60px;
 
-  object-fit: cover;
+  object-fit: contain; 
 }
 
 .header-logo h4 {
@@ -692,7 +693,7 @@ body {
 }
 
 /* Size + Color */
-.size-color-cart-prodct {
+.size-color-cart-product {
   font-size: 12px;
   text-transform: uppercase;
   color: #000;
@@ -701,20 +702,20 @@ body {
 }
 
 /* Số lượng ( - 1 + ) */
-.quanlity-prodcuct-cart {
+.quantity-product-cart {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.quanlity-prodcuct-cart .ant-btn {
+.quantity-product-cart .ant-btn {
   border: none;
   box-shadow: none;
   font-size: 16px;
   font-weight: 600;
 }
 
-.quanlity-prodcuct-cart .ant-typography {
+.quantity-product-cart .ant-typography {
   font-size: 14px;
   min-width: 16px;
   text-align: center;
@@ -1041,7 +1042,7 @@ padding-right: "20px"; */
   margin-bottom: 10px;
   margin-top: 20px;
 }
-.select-quanlity {
+.select-quantity {
   display: block;
   margin-bottom: 10px;
   margin-top: 20px;

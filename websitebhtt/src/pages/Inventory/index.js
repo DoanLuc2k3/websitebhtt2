@@ -13,47 +13,71 @@ import {
     message,
     Select,
     Popconfirm,
+    Row,
+    Col,
+    Card,
 } from "antd";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
     PlusOutlined,
     EditOutlined,
     DeleteOutlined,
     DatabaseOutlined,
+    SearchOutlined,
+    FilterOutlined,
+    SortAscendingOutlined,
+    ExclamationCircleOutlined,
 } from "@ant-design/icons";
-import {  } from "../../API";
-import { useTranslation } from "react-i18next"; 
+import { useTranslation } from "react-i18next";
 
+// --- DỮ LIỆU ĐÃ CẬP NHẬT: Lấy từ API thật ---
+const getInventoryWithLang = async () => {
+    try {
+        const res = await fetch("https://dummyjson.com/products");
+        if (!res.ok) {
+            throw new Error('Failed to fetch products from dummyjson');
+        }
+        const data = await res.json();
 
+        // Chuẩn hóa dữ liệu từ dummyjson để khớp với cấu trúc bạn đang dùng:
+        const products = data.products.map(p => ({
+            id: p.id,
+            title: p.title,
+            title_en: p.title, // Sử dụng title làm title_en cho mục đích hiển thị
+            price: p.price * 23500, // Chuyển USD sang VNĐ giả định (1 USD = 23,500 VNĐ) để có giá lớn
+            discountedPrice: p.discountedPrice ? p.discountedPrice * 23500 : p.price * 23500, 
+            quantity: 1, // Giả định
+            total: p.price * 23500, // Giả định
+            thumbnail: p.thumbnail,
+            rating: p.rating,
+            stock: p.stock,
+            brand: p.brand,
+            category: p.category, 
+        }));
 
-// --- Dữ liệu Mock API (Đã sửa đổi để thêm trường EN cho Inventory) ---
-const getInventoryWithLang = () => {
-    // Giả lập dữ liệu có trường tiếng Anh và tiếng Việt cho tiêu đề sản phẩm
-    const sampleProducts = [
-        { id: 1, title: "Áo GuCi", title_en: "Gucci Shirt", price: 1000000, discountedPrice: 1000000, quantity: 2, total: 100000, thumbnail: "http://khosiquanaogiare.com/wp-content/uploads/2020/05/croptop-gucci-3.jpg", rating: 4.5, stock: 120, brand: "LM", category: "clothing", },
-        { id: 2, title: "Túi Xách", title_en: "Luxury Handbag", price: 10000000, discountedPrice: 1000000, quantity: 1, total: 10000000, thumbnail: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWb6XbCxJaBA0wbnqk745vswBBzFtlpV2zNg&s", rating: 4.2, stock: 60, brand: "LM", category: "clothing", },
-        { id: 3, title: "Giày Sneakers", title_en: "Running Sneakers", price: 2000000, discountedPrice: 200000, quantity: 1, total: 200000000, thumbnail: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4XAywk2d8qwBxbcgrrMThMhPji_dKmUe9MfU7lfNXkk-WeDzvA1MOGJH94HdbCs_pmHiXDw&s", rating: 4.8, stock: 40, brand: "LM", category: "footwear", },
-        { id: 4, title: "Áo Khoác", title_en: "Bomber Jacket", price: 400000, discountedPrice: 200000, quantity: 1, total: 200000000, thumbnail: "https://evara.vn/uploads/plugin/product_items/385/1.jpg", rating: 4.8, stock: 40, brand: "LM", category: "footwear", },
-    ];
-    return Promise.resolve({ products: sampleProducts, total: sampleProducts.length });
+        return { products: products, total: data.total };
+    } catch (error) {
+        console.error("Error fetching products:", error);
+        // Trả về mảng rỗng nếu lỗi để tránh crash
+        return { products: [], total: 0 };
+    }
 };
 
-// Hàm định dạng tiền tệ dựa trên i18n
+// Hàm định dạng tiền tệ dựa trên i18n (giữ nguyên)
 const formatInventoryPrice = (value, i18n) => {
     if (value === undefined || value === null) return '-';
     const isVietnamese = i18n.language === 'vi';
     const currency = isVietnamese ? 'VNĐ' : 'USD';
     const locale = isVietnamese ? 'vi-VN' : 'en-US';
     
-    // Chia cho 1000 để mô phỏng đơn vị tiền tệ nhỏ hơn (ví dụ: nghìn VNĐ, hoặc USD)
-    const displayValue = isVietnamese ? value : value / 10000; 
-
+    // Nếu là tiếng Anh, chia giá trị VNĐ giả định trở lại USD (khoảng)
+    const displayValue = isVietnamese ? value : value / 23500; 
+    
     return `${displayValue.toLocaleString(locale, { minimumFractionDigits: 0 })} ${currency}`;
 };
 
-
 function Inventory() {
-    const { t, i18n } = useTranslation(); // 👈 SỬ DỤNG HOOK DỊCH
+    const { t, i18n } = useTranslation();
 
     const [loading, setLoading] = useState(false);
     const [dataSource, setDataSource] = useState([]);
@@ -61,75 +85,133 @@ function Inventory() {
     const [editingProduct, setEditingProduct] = useState(null);
     const [form] = Form.useForm();
 
+    // UI states for toolbar
+    const [searchText, setSearchText] = useState("");
+    const [filterCategory, setFilterCategory] = useState("all");
+    const [sortOption, setSortOption] = useState("none");
+    const [thumbnailPreview, setThumbnailPreview] = useState("");
+    const [hoveredRow, setHoveredRow] = useState(null);
+
     useEffect(() => {
-        // Gọi API mock đã sửa đổi
         fetchData();
     }, []);
-    
-    // Tải lại dữ liệu khi ngôn ngữ thay đổi để cập nhật định dạng tiền tệ
+
     useEffect(() => {
+        // reload to update price format when language changes
         fetchData();
     }, [i18n.language]);
 
     const fetchData = () => {
         setLoading(true);
-        // Thay đổi getInventory bằng mock đã thêm trường ngôn ngữ
-        getInventoryWithLang().then((res) => { 
+        getInventoryWithLang().then((res) => {
             setDataSource(res.products);
             setLoading(false);
         });
     };
 
-    //  Mở modal thêm mới hoặc chỉnh sửa
-    const openModal = (record = null) => {
-        setEditingProduct(record);
-        if (record) form.setFieldsValue(record);
-        else form.resetFields();
-        setIsModalOpen(true);
+    // Toolbar handlers
+    const handleSearch = (value) => {
+        setSearchText(value?.trim?.() ?? "");
+    };
+    const handleFilterCategory = (value) => {
+        setFilterCategory(value);
+    };
+    const handleSort = (value) => {
+        setSortOption(value);
+    };
+    const filterLowStock = () => {
+        setFilterCategory("low_stock");
     };
 
-    //  Đóng modal
+    // Derived filtered & sorted data (memoized)
+    const processedData = useMemo(() => {
+        let ds = [...dataSource];
+        // search by title/title_en or brand
+        if (searchText) {
+            const q = searchText.toLowerCase();
+            ds = ds.filter((p) => {
+                const name = (i18n.language === "en" ? p.title_en : p.title) || "";
+                return (
+                    name.toLowerCase().includes(q) ||
+                    (p.brand || "").toLowerCase().includes(q)
+                );
+            });
+        }
+        // filter category
+        if (filterCategory && filterCategory !== "all") {
+            if (filterCategory === "low_stock") {
+                ds = ds.filter((p) => p.stock <= 20);
+            } else {
+                // Lọc theo category của dummyjson
+                ds = ds.filter((p) => p.category === filterCategory);
+            }
+        }
+        // sort
+        if (sortOption === "price_asc") ds.sort((a, b) => a.price - b.price);
+        if (sortOption === "price_desc") ds.sort((a, b) => b.price - a.price);
+        if (sortOption === "stock_desc") ds.sort((a, b) => b.stock - a.stock);
+        if (sortOption === "stock_asc") ds.sort((a, b) => a.stock - b.stock);
+        return ds;
+    }, [dataSource, searchText, filterCategory, sortOption, i18n.language]);
+
+    // Modal open/close
+    const openModal = (record = null) => {
+        setEditingProduct(record);
+        if (record) {
+            form.setFieldsValue(record);
+            setThumbnailPreview(record.thumbnail || "");
+        } else {
+            form.resetFields();
+            setThumbnailPreview("");
+        }
+        setIsModalOpen(true);
+    };
     const closeModal = () => {
         setEditingProduct(null);
         setIsModalOpen(false);
+        setThumbnailPreview("");
     };
 
-    //  Thêm hoặc cập nhật sản phẩm
+    // Save (add/update)
     const handleSave = () => {
         form.validateFields().then((values) => {
             if (editingProduct) {
-                // cập nhật
                 setDataSource((prev) =>
                     prev.map((item) =>
                         item.id === editingProduct.id ? { ...item, ...values } : item
                     )
                 );
-                message.success(t("inventory_update_success")); //  Dịch thông báo
+                message.success(t("inventory_update_success") || "Cập nhật sản phẩm thành công");
             } else {
-                // thêm mới
                 const newProduct = {
                     ...values,
                     id: Date.now(),
-                    // Giả lập thêm tên tiếng Anh nếu người dùng chỉ nhập tiếng Việt
-                    title_en: values.title, 
+                    title_en: values.title, // giả lập
                 };
                 setDataSource((prev) => [newProduct, ...prev]);
-                message.success(t("inventory_add_success")); //  Dịch thông báo
+                message.success(t("inventory_add_success") || "Thêm sản phẩm thành công");
             }
             closeModal();
         });
     };
 
-    //  Xóa sản phẩm
+    // Delete
     const handleDelete = (id) => {
         setDataSource((prev) => prev.filter((item) => item.id !== id));
-        message.success(t("inventory_delete_success")); //  Dịch thông báo
+        message.success(t("inventory_delete_success") || "Xóa sản phẩm thành công");
     };
 
-    // Cấu hình cột với i18n
+    // compute discount percent helper
+    const calcDiscountPercent = (record) => {
+        if (!record.price || !record.discountedPrice) return 0;
+        if (record.discountedPrice >= record.price) return 0;
+        return Math.round(100 - (record.discountedPrice / record.price) * 100);
+    };
+
+    // Columns (ĐÃ CHỈNH SỬA WIDTH để tiêu đề nằm trên 1 hàng)
     const columns = [
         {
-            title: t("inventory_col_image"), //  Dịch
+            title: t("inventory_col_image") || "Ảnh",
             dataIndex: "thumbnail",
             render: (link) => (
                 <Avatar
@@ -142,10 +224,9 @@ function Inventory() {
             width: 90,
         },
         {
-            title: t("inventory_col_name"), //  Dịch
-            // Hiển thị tên sản phẩm theo ngôn ngữ hiện tại
-            dataIndex: i18n.language === 'en' ? "title_en" : "title", 
-            width: 220,
+            title: t("inventory_col_name") || "Tên sản phẩm",
+            dataIndex: i18n.language === 'en' ? "title_en" : "title",
+            width: 250, // ĐÃ TĂNG WIDTH
             render: (text) => (
                 <Typography.Text strong style={{ color: "#262626" }}>
                     {text}
@@ -153,32 +234,36 @@ function Inventory() {
             ),
         },
         {
-            title: `${t("inventory_col_price")} (${i18n.language === 'vi' ? 'VNĐ' : 'USD'})`, //  Dịch & hiển thị đơn vị
+            title: `${t("inventory_col_price") || "Giá"} (${i18n.language === 'vi' ? 'VNĐ' : 'USD'})`,
             dataIndex: "price",
             render: (value) => (
                 <Typography.Text style={{ color: "#000000ff", fontWeight: 500 }}>
                     {formatInventoryPrice(value, i18n)}
                 </Typography.Text>
             ),
-            width: 150,
+            width: 170, // ĐÃ TĂNG WIDTH
         },
         {
-            title: t("inventory_col_rating"), //  Dịch
+            title: t("Giảm giá") || "Giảm giá",
+            dataIndex: "discountedPrice",
+            render: (discounted, record) => {
+                const p = calcDiscountPercent(record);
+                return p > 0 ? <Tag color="green">-{p}%</Tag> : <Tag>Không</Tag>;
+            },
+            width: 110,
+        },
+        {
+            title: t("inventory_col_rating") || "Đánh giá",
             dataIndex: "rating",
             render: (rating) => (
-                <Rate
-                    value={rating}
-                    allowHalf
-                    disabled
-                    style={{ fontSize: 16, color: "#faad14" }}
-                />
+                <Rate value={rating} allowHalf disabled style={{ fontSize: 16 }} />
             ),
-            width: 200,
+            width: 180,
         },
         {
-            title: t("inventory_col_stock"), //  Dịch
+            title: t("inventory_col_stock") || "Tồn kho",
             dataIndex: "stock",
-            width: 100,
+            width: 120, // ĐÃ TĂNG WIDTH
             render: (stock) => (
                 <Tag
                     color={stock > 50 ? "blue" : stock > 20 ? "gold" : "volcano"}
@@ -194,32 +279,29 @@ function Inventory() {
             ),
         },
         {
-            title: t("inventory_col_brand"), //  Dịch
+            title: t("inventory_col_brand") || "Thương hiệu",
             dataIndex: "brand",
             width: 140,
         },
         {
-            title: t("inventory_col_category"), //  Dịch
+            title: t("inventory_col_category") || "Danh mục",
             dataIndex: "category",
             width: 140,
-            // Dịch các giá trị Category
-            render: (text) => t(text), 
+            render: (text) => t(text) || text,
         },
         {
-            title: t("inventory_col_actions"), //  Dịch
+            title: t("inventory_col_actions") || "Hành động",
             key: "actions",
             width: 150,
             render: (_, record) => (
                 <Space>
-                    <Button
-                        icon={<EditOutlined />}
-                        onClick={() => openModal(record)}
-                    />
+                    <Button icon={<EditOutlined />} onClick={() => openModal(record)} />
                     <Popconfirm
-                        title={t("inventory_confirm_delete")} //  Dịch
+                        title={t("inventory_confirm_delete") || "Bạn có chắc muốn xóa?"}
                         onConfirm={() => handleDelete(record.id)}
-                        okText={t("delete")} //  Dịch
-                        cancelText={t("cancel")} //  Dịch
+                        okText={t("delete") || "Xóa"}
+                        cancelText={t("cancel") || "Hủy"}
+                        icon={<ExclamationCircleOutlined style={{ color: "red" }} />}
                     >
                         <Button danger icon={<DeleteOutlined />} />
                     </Popconfirm>
@@ -227,6 +309,22 @@ function Inventory() {
             ),
         },
     ];
+
+    // Table row style for hover effect (use hoveredRow state)
+    const onRow = (record) => {
+        return {
+            onMouseEnter: () => setHoveredRow(record.id),
+            onMouseLeave: () => setHoveredRow(null),
+            style: {
+                background: hoveredRow === record.id ? "#fbfbfb" : undefined,
+                transition: "background 0.15s ease",
+            },
+        };
+    };
+
+    // Statistics
+    const totalProducts = processedData.length;
+    const totalStock = processedData.reduce((s, p) => s + (p.stock || 0), 0);
 
     return (
         <Space
@@ -239,136 +337,158 @@ function Inventory() {
                 borderRadius: "12px",
             }}
         >
-            {/* --- TIÊU ĐỀ + NÚT THÊM --- */}
-            <div
-                style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                }}
-            >
-                <Typography.Title
-                    level={3}
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "12px",
-                        color: "#262626",
-                        margin: 0,
-                    }}
-                >
-                    <DatabaseOutlined
-                        style={{
-                           color: "#fff",
-                           backgroundColor: "orange",
-                           borderRadius: "50%",
-                           padding: 10,
-                           fontSize: 22,
-                           boxShadow: "0 3px 6px rgba(128,0,128,0.3)",
-                        }}
-                    />
-                    <span style={{ fontWeight: 600 }}>{t("inventory")}</span> {/*  Dịch */}
+            {/* Header */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <Typography.Title level={2} style={{ display: "flex", alignItems: "center", gap: 12, color: "#262626", margin: 0,style: "bold"}}>
+                    <DatabaseOutlined style={{ color: "#fff", backgroundColor: "orange", borderRadius: "50%", padding: 10, fontSize: 22, boxShadow: "0 3px 6px rgba(128,0,128,0.3)" }} />
+                    <span style={{ fontWeight: 600 }}>{t("inventory") || "Quản lý kho"}</span>
                 </Typography.Title>
 
-                <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    style={{
-                        borderRadius: 8,
-                        backgroundColor: "#0a75bbff",
-                    }}
-                    onClick={() => openModal()}
-                >
-                    {t("inventory_add_product")} {/*  Dịch */}
-                </Button>
+                <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                    <Button type="primary" icon={<PlusOutlined />} style={{ borderRadius: 8,  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }} onClick={() => openModal()}>
+                        {t("inventory_add_product") || "Thêm sản phẩm"}
+                    </Button>
+                </div>
             </div>
 
-            {/* --- BẢNG DỮ LIỆU --- */}
-            <div
-                style={{
-                    width: "100%",
-                    background: "#fff",
-                    padding: "16px 20px",
-                    borderRadius: "12px",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
-                }}
-            >
+            {/* Toolbar + Stats */}
+            <Card style={{ borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.04)" }}>
+                <Row gutter={[16, 12]} align="middle">
+                    <Col xs={24} sm={12} md={10} lg={8}>
+                        <Input.Search
+                            placeholder={t("search_placeholder") || "🔍 Tìm kiếm sản phẩm, thương hiệu..."}
+                            onSearch={handleSearch}
+                            enterButton={<SearchOutlined />}
+                            allowClear
+                            onChange={(e) => setSearchText(e.target.value)}
+                            value={searchText}
+                        />
+                    </Col>
+
+                    <Col xs={24} sm={12} md={8} lg={6}>
+                        <Select
+                            style={{ width: "100%" }}
+                            value={filterCategory}
+                            onChange={handleFilterCategory}
+                            suffixIcon={<FilterOutlined />}
+                            options={[
+                                { value: "all", label: t("all_categories") || "Tất cả danh mục" },
+                                // Các category mock cũ, nên đổi thành category thực từ dummyjson nếu muốn lọc chính xác
+                                { value: "clothing", label: t("clothing") || "Quần áo" }, 
+                                { value: "footwear", label: t("footwear") || "Giày dép" },
+                                { value: "electronics", label: t("electronics") || "Điện tử" },
+                                { value: "furniture", label: t("furniture") || "Nội thất" },
+                                { value: "accessories", label: t("accessories") || "Phụ kiện" },
+                                { value: "low_stock", label: t("low_stock") || "Sắp hết hàng" },
+                            ]}
+                        />
+                    </Col>
+
+                    <Col xs={24} sm={12} md={6} lg={4}>
+                        <Select
+                            style={{ width: "100%" }}
+                            value={sortOption}
+                            onChange={handleSort}
+                            suffixIcon={<SortAscendingOutlined />}
+                            options={[
+                                { value: "none", label: t("sort_default") || "Mặc định" },
+                                { value: "price_asc", label: t("price_asc") || "Giá tăng dần" },
+                                { value: "price_desc", label: t("price_desc") || "Giá giảm dần" },
+                                { value: "stock_desc", label: t("stock_desc") || "Tồn kho cao nhất" },
+                            ]}
+                        />
+                    </Col>
+
+                    <Col xs={24} sm={12} md={24} lg={6} style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+                        <Button onClick={filterLowStock} icon={<DatabaseOutlined />}>
+                            {t("inventory_btn_low_stock") || "Sản phẩm sắp hết"}
+                        </Button>
+                    </Col>
+
+                    <Col span={24} style={{ marginTop: 6 }}>
+                        <Space size="middle">
+                            <Tag color="blue">Tổng SP: {totalProducts}</Tag>
+                            <Tag color="green">Tổng tồn kho: {totalStock}</Tag>
+                        </Space>
+                    </Col>
+                </Row>
+            </Card>
+
+            {/* Table */}
+            <div style={{ width: "100%", background: "#fff", padding: "16px 20px", borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }}>
                 <Table
                     loading={loading}
                     rowKey="id"
-                    columns={columns} // Sử dụng columns đã được dịch
-                    dataSource={dataSource}
-                    pagination={{
-                        position: ["bottomCenter"],
-                        pageSize: 5,
-                    }}
-                    style={{
-                        width: "100%",
-                        borderRadius: "10px",
-                    }}
+                    columns={columns}
+                    dataSource={processedData}
+                    pagination={{ position: ["bottomCenter"], pageSize: 5 }}
+                    style={{ width: "100%", borderRadius: "10px" }}
                     scroll={{ x: "100%" }}
+                    onRow={onRow}
                 />
             </div>
 
-            {/* --- MODAL THÊM / CẬP NHẬT --- */}
+            {/* Modal thêm / cập nhật */}
             <Modal
-                title={
-                    editingProduct ? `📝 ${t("inventory_modal_update")}` : `➕ ${t("inventory_modal_add")}` //  Dịch
-                }
+                title={editingProduct ? `📝 ${t("inventory_modal_update") || "Cập nhật sản phẩm"}` : `➕ ${t("inventory_modal_add") || "Thêm sản phẩm"}`}
                 open={isModalOpen}
                 onCancel={closeModal}
                 onOk={handleSave}
-                okText={editingProduct ? t("update") : t("add")} //  Dịch
+                okText={editingProduct ? t("update") || "Cập nhật" : t("add") || "Thêm"}
                 centered
+                width={640}
             >
                 <Form
                     form={form}
                     layout="vertical"
                     initialValues={{ rating: 4, stock: 50 }}
+                    onValuesChange={(changed, all) => {
+                        if (changed.thumbnail !== undefined) setThumbnailPreview(changed.thumbnail || "");
+                    }}
                 >
-                    <Form.Item
-                        name="title"
-                        label={t("inventory_label_name")} //  Dịch
-                        rules={[{ required: true, message: t("inventory_msg_name_required") }]} //  Dịch
-                    >
-                        <Input placeholder={t("inventory_placeholder_name")} /> {/*  Dịch */}
+                    <Form.Item name="title" label={t("inventory_label_name") || "Tên sản phẩm"} rules={[{ required: true, message: t("inventory_msg_name_required") || "Vui lòng nhập tên sản phẩm" }]}>
+                        <Input placeholder={t("inventory_placeholder_name") || "Nhập tên sản phẩm"} />
                     </Form.Item>
-                    <Form.Item
-                        name="price"
-                        label={t("inventory_label_price")} //  Dịch
-                        rules={[{ required: true, message: t("inventory_msg_price_required") }]} //  Dịch
-                    >
-                        <InputNumber
-                            style={{ width: "100%" }}
-                            min={0}
-                            placeholder={t("inventory_placeholder_price")} //  Dịch
-                        />
+                    <Form.Item name="price" label={t("inventory_label_price") || "Giá"} rules={[{ required: true, message: t("inventory_msg_price_required") || "Vui lòng nhập giá" }]}>
+                        <InputNumber style={{ width: "100%" }} min={0} placeholder={t("inventory_placeholder_price") || "Nhập giá"} />
                     </Form.Item>
-                    <Form.Item name="rating" label={t("inventory_label_rating")}> {/*  Dịch */}
+                    <Form.Item name="discountedPrice" label={t("inventory_label_discounted") || "Giá khuyến mãi"}>
+                        <InputNumber style={{ width: "100%" }} min={0} placeholder={t("inventory_placeholder_discounted") || "Nhập giá khuyến mãi (nếu có)"} />
+                    </Form.Item>
+                    <Form.Item name="rating" label={t("inventory_label_rating") || "Đánh giá"}>
                         <Rate allowHalf />
                     </Form.Item>
-                    <Form.Item name="stock" label={t("inventory_label_stock")}> {/*  Dịch */}
+                    <Form.Item name="stock" label={t("inventory_label_stock") || "Tồn kho"}>
                         <InputNumber min={0} style={{ width: "100%" }} />
                     </Form.Item>
-                    <Form.Item name="brand" label={t("inventory_label_brand")}> {/*  Dịch */}
-                        <Input placeholder={t("inventory_placeholder_brand")} /> {/*  Dịch */}
+                    <Form.Item name="brand" label={t("inventory_label_brand") || "Thương hiệu"}>
+                        <Input placeholder={t("inventory_placeholder_brand") || "Nhập thương hiệu"} />
                     </Form.Item>
-                    <Form.Item name="category" label={t("inventory_label_category")}> {/*  Dịch */}
+                    <Form.Item name="category" label={t("inventory_label_category") || "Danh mục"}>
                         <Select
-                            placeholder={t("inventory_placeholder_category")} //  Dịch
+                            placeholder={t("inventory_placeholder_category") || "Chọn danh mục"}
                             options={[
-                                // Sử dụng key dịch cho nhãn (label)
-                                { value: "electronics", label: t("electronics") },
-                                { value: "clothing", label: t("clothing") }, 
-                                { value: "footwear", label: t("footwear") }, 
-                                { value: "furniture", label: t("furniture") },
-                                { value: "accessories", label: t("accessories") },
+                                { value: "electronics", label: t("electronics") || "Điện tử" },
+                                { value: "clothing", label: t("clothing") || "Quần áo" },
+                                { value: "footwear", label: t("footwear") || "Giày dép" },
+                                { value: "furniture", label: t("furniture") || "Nội thất" },
+                                { value: "accessories", label: t("accessories") || "Phụ kiện" },
                             ]}
                         />
                     </Form.Item>
-                    <Form.Item name="thumbnail" label={t("inventory_label_image_link")}> {/* Dịch */}
-                        <Input placeholder={t("inventory_placeholder_image_link")} /> {/* Dịch */}
+                    <Form.Item name="thumbnail" label={t("inventory_label_image_link") || "Link ảnh"}>
+                        <Input placeholder={t("inventory_placeholder_image_link") || "Dán link ảnh sản phẩm"} />
                     </Form.Item>
+
+                    {/* Preview ảnh */}
+                    {thumbnailPreview ? (
+                        <div style={{ marginTop: 8 }}>
+                            <Typography.Text strong>{t("image_preview") || "Xem trước ảnh"}</Typography.Text>
+                            <div style={{ marginTop: 8 }}>
+                                <img src={thumbnailPreview} alt="preview" style={{ width: "100%", borderRadius: 8, maxHeight: 220, objectFit: "cover" }} onError={(e) => (e.currentTarget.style.display = "none")} />
+                            </div>
+                        </div>
+                    ) : null}
                 </Form>
             </Modal>
         </Space>

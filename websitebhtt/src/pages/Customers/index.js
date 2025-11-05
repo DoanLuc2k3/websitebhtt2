@@ -33,26 +33,41 @@ import {
     Drawer, 
     Timeline 
 } from "antd";
-import { useTranslation } from "react-i18next"; //  IMPORT useTranslation
-
-const getCustomers = () => Promise.resolve({
-    users: [
-        // Thêm trường tiếng Anh cho thành phố để hỗ trợ lọc và hiển thị
-        { id: 1, firstName: "Doãn", lastName: "Min", email: "doanmin@example.com", phone: "+123456789", image: "https://i.pravatar.cc/150?img=1", address: { city: "Đà Nẵng", city_en: "Da Nang" } },
-        { id: 2, firstName: "Doãn", lastName: "Lực", email: "doanluc@example.com", phone: "+987654321", image: "https://i.pravatar.cc/150?img=2", address: { city: "Đà Nẵng", city_en: "Da Nang" } },
-        { id: 3, firstName: "Lê", lastName: "Văn C", email: "levanc@example.com", phone: "+112233445", image: "https://i.pravatar.cc/150?img=3", address: { city: "Hồ Chí Minh", city_en: "Ho Chi Minh" } },
-        { id: 4, firstName: "Phạm", lastName: "Thị D", email: "phamd@example.com", phone: "+556677889", image: "https://i.pravatar.cc/150?img=4", address: { city: "Hà Nội", city_en: "Hanoi" } },
-        { id: 5, firstName: "Hoàng", lastName: "Văn E", email: "hoange@example.com", phone: "+998877665", image: "https://i.pravatar.cc/150?img=5", address: { city: "Hải Phòng", city_en: "Hai Phong" } },
-        { id: 6, firstName: "Trần", lastName: "Minh F", email: "tranf@example.com", phone: "+900112233", image: "https://i.pravatar.cc/150?img=6", address: { city: "Hồ Chí Minh", city_en: "Ho Chi Minh" } },
-        { id: 7, firstName: "Nguyễn", lastName: "Thị G", email: "nguyeng@example.com", phone: "+888999777", image: "https://i.pravatar.cc/150?img=7", address: { city: "Hà Nội", city_en: "Hanoi" } },
-        { id: 8, firstName: "Bùi", lastName: "Đức H", email: "buih@example.com", phone: "+777666555", image: "https://i.pravatar.cc/150?img=8", address: { city: "Đà Nẵng", city_en: "Da Nang" } },
-    ]
-});
-
+import { useTranslation } from "react-i18next";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 const { Search } = Input;
+
+// --- 1. HÀM FETCH DỮ LIỆU THỰC TẾ TỪ DUMMYJSON ---
+/**
+ * Lấy danh sách người dùng từ DummyJSON API.
+ * @returns {Promise<object>} Dữ liệu JSON từ API.
+ */
+const getCustomers = async () => {
+    try {
+        // Sử dụng API thật
+        const response = await fetch("https://dummyjson.com/users");
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        return data; 
+    } catch (error) {
+        console.error("Error fetching customers:", error);
+        // Trả về cấu trúc rỗng nếu lỗi
+        return { users: [] };
+    }
+};
+
+// --- ÁNH XẠ THÀNH PHỐ (Mô phỏng VN city từ US/Global city) ---
+const cityMap = {
+    "New York": { vi: "Hà Nội", en: "Hanoi" },
+    "Los Angeles": { vi: "Hồ Chí Minh", en: "Ho Chi Minh" },
+    "Chicago": { vi: "Đà Nẵng", en: "Da Nang" },
+    "Houston": { vi: "Hải Phòng", en: "Hai Phong" },
+};
+
 
 const getAvgOrderValue = () => {
     // Giá trị ngẫu nhiên (VND)
@@ -73,13 +88,34 @@ const generateTimelineData = (customer, t, i18n) => {
     const formatPrice = (amount) => {
         const locale = isVietnamese ? 'vi-VN' : 'en-US';
         const currencySymbol = isVietnamese ? 'đ' : '$';
+        // Giả lập tỉ giá 23000 VND/USD
         const displayAmount = isVietnamese ? amount : amount / 23000; 
 
         return `${displayAmount.toLocaleString(locale, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} ${currencySymbol}`;
     };
 
-    const [day, month, year] = customer.joinDate.split('/').map(Number);
-    const joinDateObj = new Date(year, month - 1, day);
+    // Kiểm tra và xử lý joinDate có thể ở định dạng string hoặc Date object
+    let joinDateObj;
+    try {
+         // Thử phân tích cú pháp joinDate theo định dạng từ useEffect (locale string)
+         const dateParts = customer.joinDate.split('/');
+         if (dateParts.length === 3) {
+            const [day, month, year] = dateParts.map(Number);
+            joinDateObj = new Date(year, month - 1, day);
+         } else {
+             // Thử parse như Date string (phòng trường hợp format locale khác)
+             joinDateObj = new Date(customer.joinDate);
+         }
+    } catch (e) {
+        // Fallback nếu parse lỗi
+        joinDateObj = new Date();
+    }
+    
+    // Đảm bảo joinDateObj là một Date hợp lệ
+    if (isNaN(joinDateObj.getTime())) {
+        joinDateObj = new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000); // Ngày ngẫu nhiên nếu lỗi
+    }
+
 
     // 1. Sự kiện Đăng ký
     events.push({
@@ -92,6 +128,7 @@ const generateTimelineData = (customer, t, i18n) => {
 
     // 2. Sự kiện Đặt hàng
     for (let i = 1; i <= ordersCount; i++) {
+        // Tạo ngày đặt hàng ngẫu nhiên giữa ngày đăng ký và hiện tại
         const timeDiff = Date.now() - joinDateObj.getTime();
         const randomTime = Math.random() * timeDiff;
         const orderDateObj = new Date(joinDateObj.getTime() + randomTime);
@@ -115,8 +152,9 @@ const generateTimelineData = (customer, t, i18n) => {
 
     // 3. Sự kiện Live Chat
     if (Math.random() > 0.5) {
+        // Sử dụng một ngày giả lập gần hiện tại
         events.push({
-            date: new Date(Date.now() + 1000),
+            date: new Date(Date.now() + 1000), 
             label: t("today"), 
             children: <Text type="warning">{t("cus_timeline_live_chat_request")}</Text>, 
             color: "red",
@@ -124,6 +162,7 @@ const generateTimelineData = (customer, t, i18n) => {
         });
     }
 
+    // Sắp xếp các sự kiện theo thứ tự thời gian giảm dần
     events.sort((a, b) => b.date.getTime() - a.date.getTime());
     
     return events.map(({ date, ...rest }) => rest);
@@ -131,7 +170,7 @@ const generateTimelineData = (customer, t, i18n) => {
 
 
 function Customers() {
-    const { t, i18n } = useTranslation(); // 👈 Dùng hook dịch
+    const { t, i18n } = useTranslation();
     
     const [loading, setLoading] = useState(false);
     const [dataSource, setDataSource] = useState([]);
@@ -146,15 +185,32 @@ function Customers() {
     const [editForm] = Form.useForm();
     const [contactForm] = Form.useForm();
     
+    // --- 2. LOGIC FETCH VÀ ÁNH XẠ DỮ LIỆU TRONG useEffect ---
     useEffect(() => {
         setLoading(true);
+        // Gọi hàm fetch API thực
         getCustomers().then((res) => {
-            const usersData = (res.users || []).map((user) => ({
-                ...user,
-                totalOrders: Math.floor(Math.random() * 8) + 1, 
-                joinDate: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000).toLocaleDateString(i18n.language), 
-                key: user.id
-            }));
+            const usersData = (res.users || []).map((user) => {
+                
+                // --- Bổ sung logic ánh xạ từ API city sang city_en/city (mock) ---
+                const apiCity = user.address?.city || "Unknown";
+                const mappedCity = cityMap[apiCity] || { vi: apiCity, en: apiCity };
+
+                return {
+                    ...user,
+                    // Giữ lại logic tạo dữ liệu ngẫu nhiên
+                    totalOrders: Math.floor(Math.random() * 8) + 1, 
+                    joinDate: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000).toLocaleDateString(i18n.language), 
+                    key: user.id,
+
+                    // Cập nhật cấu trúc address theo yêu cầu của component
+                    address: {
+                        city: mappedCity.vi, 
+                        city_en: mappedCity.en, 
+                        ...user.address 
+                    }
+                };
+            });
             setDataSource(usersData);
             setFilteredData(usersData);
             setLoading(false);
@@ -163,19 +219,21 @@ function Customers() {
 
     useEffect(() => {
         let filtered = dataSource.filter((item) => {
+            // Lọc theo tên/email/phone
             const fullName = `${item.firstName} ${item.lastName}`.toLowerCase();
             const contactInfo = `${item.email} ${item.phone}`.toLowerCase();
+            // Lọc theo thành phố dựa trên ngôn ngữ
             const cityToCheck = i18n.language === 'en' ? item.address.city_en : item.address.city;
 
             const matchesSearch = fullName.includes(searchValue.toLowerCase()) || contactInfo.includes(searchValue.toLowerCase());
-            // Lọc theo key 'all' đã được chuẩn hóa
+            // Lọc theo thành phố
             const matchesCity = selectedCity === "all" || cityToCheck === selectedCity; 
             return matchesSearch && matchesCity;
         });
         setFilteredData(filtered);
     }, [searchValue, selectedCity, dataSource, i18n.language]);
 
-    // Danh sách thành phố (được hiển thị bằng tên theo ngôn ngữ hiện tại)
+    // Danh sách thành phố
     const cities = [
         "all", 
         ...new Set(dataSource.map((item) => i18n.language === 'en' ? item.address.city_en : item.address.city)),
@@ -184,17 +242,21 @@ function Customers() {
     const showEditModal = (record) => {
         setSelectedCustomer(record);
         setIsEditModalVisible(true);
-        // Thiết lập giá trị cho Form Edit bằng tên tiếng Việt (Giả sử form input là VN)
+        // Thiết lập giá trị cho Form Edit
         editForm.setFieldsValue({
             firstName: record.firstName,
             lastName: record.lastName,
             email: record.email,
             phone: record.phone,
-            city: record.address.city, // Giả sử select box dùng tên tiếng Việt
+            city: record.address.city, // Giả sử select box dùng tên tiếng Việt (tên city)
         });
     };
 
     const handleEditCustomer = (values) => {
+        // Cần tìm lại city_en từ city khi update (logic đơn giản)
+        const cityKey = Object.keys(cityMap).find(key => cityMap[key].vi === values.city);
+        const updatedCityEn = cityKey ? cityMap[cityKey].en : values.city; // Fallback nếu không tìm thấy
+
         const updatedData = dataSource.map(item => {
             if (item.id === selectedCustomer.id) {
                 return {
@@ -202,8 +264,7 @@ function Customers() {
                     ...values,
                     address: { 
                         city: values.city,
-                        // Cần thêm logic map city_en nếu city không có
-                        city_en: values.city === 'Đà Nẵng' ? 'Da Nang' : values.city === 'Hồ Chí Minh' ? 'Ho Chi Minh' : values.city 
+                        city_en: updatedCityEn 
                     } 
                 };
             }
@@ -233,7 +294,7 @@ function Customers() {
 
     const handleContactAction = (values) => {
         setIsContactModalVisible(false);
-        message.success(`✅ ${t("cus_msg_contact_logged", { method: t(values.method), name: selectedCustomer.firstName })}`); //  Dịch tên phương thức
+        message.success(`✅ ${t("cus_msg_contact_logged", { method: t(values.method), name: selectedCustomer.firstName })}`);
     };
 
 
@@ -288,7 +349,8 @@ function Customers() {
             title: t("cus_col_customer"), 
             dataIndex: "firstName",
             key: "name",
-            width: '28%',
+            // Giảm chiều rộng từ 28% xuống 24%
+            width: '24%', 
             render: (text, record) => (
                 <Space size={12}>
                     <Badge
@@ -325,7 +387,8 @@ function Customers() {
             title: t("cus_col_contact_info"), 
             dataIndex: "phone",
             key: "contact",
-            width: '18%',
+            // Giảm chiều rộng từ 18% xuống 16%
+            width: '16%', 
             render: (phone, record) => (
                 <Space direction="vertical" size={4}>
                     <Tag
@@ -349,7 +412,8 @@ function Customers() {
             dataIndex: "avgOrderValue", 
             key: "avgOrderValue",
             align: 'center',
-            width: '15%',
+            // Giảm chiều rộng từ 15% xuống 12%
+            width: '12%', 
             render: () => {
                 const value = getAvgOrderValue();
                 
@@ -370,7 +434,8 @@ function Customers() {
             dataIndex: "totalOrders",
             key: "orders",
             align: 'center',
-            width: '12%',
+            // Giảm chiều rộng từ 12% xuống 10%
+            width: '10%', 
             render: (orders) => (
                 <Text strong style={{ color: orders > 15 ? '#27ae60' : '#333', fontSize: 16 }}>{orders}</Text>
             )
@@ -379,7 +444,8 @@ function Customers() {
             title: t("cus_col_join_date"), 
             dataIndex: "joinDate",
             key: "joinDate",
-            width: '15%',
+            // Giảm chiều rộng từ 15% xuống 14%
+            width: '14%', 
             render: (date) => (
                 <Text type="secondary" style={{ fontSize: 13 }}>{date}</Text>
             )
@@ -387,8 +453,11 @@ function Customers() {
         {
             title: t("cus_col_actions"), 
             key: "action",
-            width: '12%',
             align: 'center',
+            // Giảm chiều rộng từ 12% xuống 8%
+            width: '8%', 
+            // Cần tổng chiều rộng các cột là 24 + 16 + 12 + 10 + 14 + 8 = 84%. 
+            // Phần còn lại sẽ được phân bổ tự động, đảm bảo cột action không bị khuất.
             render: (record) => (
                 <Space size="small">
                     <Tooltip title={t("cus_tip_edit_profile")}> 
@@ -440,18 +509,19 @@ function Customers() {
                     <Flex justify="space-between" align="center">
                         <Title
                             level={3}
-                            style={{ display: "flex", alignItems: "center", gap: "12px", color: "#262626", margin: 0 }}
+                            // Đã thay đổi: Giảm gap từ 12px xuống 8px và font-size từ 19 xuống 18
+                            style={{ display: "flex", alignItems: "center", gap: "8px", color: "#262626", margin: 0 }}
                         >
-                            <UserOutlined style={{ color: "#fff", backgroundColor: "#f7bc0cff", borderRadius: "50%", padding: 10, fontSize: 22, boxShadow: "0 3px 6px rgba(52, 152, 219, 0.4)" }} />
-                            <span style={{ fontWeight: 700, fontSize: 19}}>
+                            <UserOutlined style={{ color: "#fff", backgroundColor: "#f7bc0cff", borderRadius: "50%", padding: 8, fontSize: 20, boxShadow: "0 3px 6px rgba(52, 152, 219, 0.4)" }} />
+                            <span style={{ fontWeight: 700, fontSize: 23, whiteSpace: 'nowrap' }}>
                                 {t("cus_title_customer_management")} 
                             </span>
                         </Title>
-                    
-                        <Space size="middle">
+                        
+                        <Space size="small"> {/* Đã thay đổi: Giảm size Space từ "middle" xuống "small" */}
                             <Search
                                 placeholder={t("cus_placeholder_search")} 
-                                style={{ width: 250 }}
+                                style={{ width: 220 }} // Đã thay đổi: Giảm width từ 250 xuống 220
                                 value={searchValue}
                                 onChange={(e) => setSearchValue(e.target.value)}
                                 enterButton={<SearchOutlined />}
@@ -460,7 +530,7 @@ function Customers() {
                             <Select
                                 value={selectedCity}
                                 onChange={(value) => setSelectedCity(value)}
-                                style={{ width: 140 }}
+                                style={{ width: 120 }} // Đã thay đổi: Giảm width từ 140 xuống 120
                                 placeholder={t("cus_placeholder_filter_city")} 
                             >
                                 {cities.map((city) => (
@@ -509,7 +579,8 @@ function Customers() {
                             pageSize: 8,
                             showSizeChanger: false, 
                         }}
-                        scroll={{ x: 'max-content' }}
+                        // Đã bỏ thuộc tính scroll={{ x: 'max-content' }}
+                        // để Ant Design tự tính toán cho vừa màn hình
                     />
                 </Card>
             </Space>
@@ -527,11 +598,10 @@ function Customers() {
                     <Form.Item name="phone" label={t("cus_label_phone")} rules={[{ required: true }]}><Input /></Form.Item> 
                     <Form.Item name="city" label={t("cus_label_city")} rules={[{ required: true }]}> 
                         <Select>
-                            {/* Cần đảm bảo các giá trị trong Option là các key mà bạn đang dùng trong dataSource */}
-                            <Option value="Đà Nẵng">Đà Nẵng</Option> 
-                            <Option value="Hồ Chí Minh">Hồ Chí Minh</Option>
-                            <Option value="Hà Nội">Hà Nội</Option>
-                            <Option value="Hải Phòng">Hải Phòng</Option>
+                             {/* Lấy danh sách thành phố từ map để đảm bảo tính nhất quán khi edit */}
+                            {Object.values(cityMap).map(city => (
+                                <Option key={city.vi} value={city.vi}>{city.vi}</Option>
+                            ))}
                         </Select>
                     </Form.Item>
                     <Form.Item>
@@ -589,7 +659,6 @@ function Customers() {
                         rules={[{ required: true, message: t("cus_msg_contact_method_required") }]} 
                     >
                         <Select placeholder={t("cus_placeholder_select_action")}> 
-                            {/* SỬ DỤNG KEY CHUỖI LÀ VALUE CỦA OPTION ĐỂ DỊCH DỄ DÀNG */}
                             <Option value="cus_method_phone"> 
                                 <Space><PhoneOutlined style={{color: '#2ecc71'}}/> {t("cus_method_phone")}</Space>
                             </Option>

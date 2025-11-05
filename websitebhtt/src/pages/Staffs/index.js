@@ -21,17 +21,18 @@ import {
     notification,
 } from "antd";
 import {
-    UserOutlined,
     SearchOutlined,
     PlusOutlined,
     EditOutlined,
     DeleteOutlined,
-    LockOutlined,
-    UnlockOutlined,
     KeyOutlined,
     TeamOutlined,
+    MailOutlined,
+    PhoneOutlined,
+    CheckCircleOutlined,
+    StopOutlined,
 } from "@ant-design/icons";
-import { useTranslation } from "react-i18next"; // 👈 IMPORT useTranslation
+import { useTranslation } from "react-i18next";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -45,7 +46,7 @@ const seedStaffs = [
         email: "min@example.com",
         phone: "0912345678",
         role: "admin",
-        status: "active", // active | inactive | deleted
+        status: "active",
         avatar: null,
         createdAt: Date.now() - 1000 * 60 * 60 * 24 * 20,
     },
@@ -84,6 +85,7 @@ const seedStaffs = [
 function uid(prefix = "id") {
     return prefix + Math.random().toString(36).slice(2, 9);
 }
+
 function readStorage() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
@@ -97,20 +99,33 @@ function readStorage() {
         return [...seedStaffs];
     }
 }
+
 function writeStorage(list) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
 }
 
-
 export default function Staffs() {
-    const { t } = useTranslation(); // 👈 Dùng hook dịch
+    const { t } = useTranslation();
+    const [screenSize, setScreenSize] = useState('lg');
 
-    // Hàm thông báo đã được bao bọc để sử dụng i18n
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth < 576) setScreenSize('xs');
+            else if (window.innerWidth < 768) setScreenSize('sm');
+            else if (window.innerWidth < 992) setScreenSize('md');
+            else setScreenSize('lg');
+        };
+
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     const openNotificationWithIcon = (type, messageKey, descriptionKey, options = {}) => {
         notification[type]({
             message: t(messageKey, options),
             description: t(descriptionKey, options),
-            placement: "topRight",
+            placement: screenSize === 'xs' ? "topCenter" : "topRight",
         });
     };
 
@@ -183,12 +198,12 @@ export default function Staffs() {
         const list = readStorage();
         const idx = list.findIndex((u) => u.id === id);
         if (idx === -1) {
-            message.error("Không tìm thấy tài khoản"); // Tạm giữ tiếng Việt
+            message.error("Không tìm thấy tài khoản");
             return;
         }
         list[idx].status = "deleted";
         writeStorage(list);
-        openNotificationWithIcon("success", "staffs_msg_delete_title", "staffs_msg_delete_success"); // 👈 Dịch
+        openNotificationWithIcon("success", "staffs_msg_delete_title", "staffs_msg_delete_success");
         loadStaffs();
     };
 
@@ -199,14 +214,14 @@ export default function Staffs() {
         const newStatus = list[idx].status === "active" ? "inactive" : "active";
         list[idx].status = newStatus;
         writeStorage(list);
-        
+
         const statusText = newStatus === "active" ? t("staffs_status_active") : t("staffs_status_inactive");
-        
+
         openNotificationWithIcon(
             "success",
-            "staffs_msg_status_update", 
-            "staffs_msg_status_success", 
-            { name: list[idx].fullName, status: statusText } // 👈 Truyền options dịch
+            "staffs_msg_status_update",
+            "staffs_msg_status_success",
+            { name: list[idx].fullName, status: statusText }
         );
         loadStaffs();
     };
@@ -216,8 +231,8 @@ export default function Staffs() {
         openNotificationWithIcon(
             "info",
             "staffs_msg_reset_pwd",
-            "staffs_msg_reset_pwd_detail", 
-            { password: newPwd } // 👈 Truyền options dịch
+            "staffs_msg_reset_pwd_detail",
+            { password: newPwd }
         );
     };
 
@@ -237,7 +252,7 @@ export default function Staffs() {
                     status: values.status ? "active" : "inactive",
                 };
                 writeStorage(list);
-                openNotificationWithIcon("success", "staffs_msg_update", "staffs_msg_update_success"); // 👈 Dịch
+                openNotificationWithIcon("success", "staffs_msg_update", "staffs_msg_update_success");
             } else {
                 const newUser = {
                     id: uid("u"),
@@ -251,130 +266,152 @@ export default function Staffs() {
                 };
                 list.push(newUser);
                 writeStorage(list);
-                openNotificationWithIcon("success", "staffs_msg_add", "staffs_msg_add_success"); // 👈 Dịch
+                openNotificationWithIcon("success", "staffs_msg_add", "staffs_msg_add_success");
             }
             setModalVisible(false);
             setEditing(null);
             form.resetFields();
             loadStaffs();
         } catch (err) {
-             // Xử lý lỗi form validation (Ant Design tự lo)
+            // Xử lý lỗi form validation
         }
     };
 
     const columns = [
         {
-            title: t("staffs_col_staff"), // 👈 Dịch
+            title: t("staffs_col_staff"),
             dataIndex: "fullName",
             key: "fullName",
-            width: 280,
+            width: screenSize === 'xs' ? "100%" : screenSize === 'sm' ? "50%" : "35%",
             render: (text, record) => (
-                <Space>
+                <Space direction={screenSize === 'xs' ? "vertical" : "horizontal"}>
                     <Badge
                         dot
-                        color={record.status === "active" ? "green" : "gray"}
+                        color={record.status === "active" ? "#52c41a" : "#d9d9d9"}
                         offset={[-6, 40]}
                     >
                         <Avatar
-                            size={48}
+                            size={screenSize === 'xs' ? 36 : 48}
                             src={record.avatar}
-                            style={{ backgroundColor: "#fde3cf", color: "#f56a00", border: "1px solid #f0f0f0" }}
+                            style={{
+                                backgroundColor: record.role === "admin" ? "#ffc069" : "#87d068",
+                                color: "#fff",
+                                border: "2px solid #fff",
+                                fontWeight: 600,
+                                flexShrink: 0
+                            }}
                         >
-                            {!record.avatar && (record.fullName || "U").charAt(0).toUpperCase()}
+                            {!record.avatar && record.fullName.charAt(0).toUpperCase()}
                         </Avatar>
                     </Badge>
                     <div>
-                        <Text strong style={{ color: "#333" }}>
+                        <Text strong style={{ color: "#262626", fontSize: screenSize === 'xs' ? 12 : 14 }}>
                             {record.fullName}
                         </Text>
                         <br />
-                        <Text type="secondary" style={{ fontSize: 13 }}>
-                            {record.email}
+                        <Text type="secondary" style={{ fontSize: 12 }}>
+                            <MailOutlined /> {record.email}
                         </Text>
                     </div>
                 </Space>
             ),
         },
-        {
-            title: t("staffs_col_phone"), // 👈 Dịch
+        ...(screenSize !== 'xs' && screenSize !== 'sm' ? [{
+            title: t("staffs_col_phone"),
             dataIndex: "phone",
             key: "phone",
+            width: "15%",
             render: (phone) => (
-                <Tag color="blue" style={{ borderRadius: 6 }}>
+                <Tag
+                    icon={<PhoneOutlined />}
+                    color="processing"
+                    style={{ borderRadius: 6, fontSize: 12 }}
+                >
                     {phone || "-"}
                 </Tag>
             ),
-        },
-        {
-            title: t("staffs_col_role"), // 👈 Dịch
+        }] : []),
+        ...(screenSize === 'lg' || screenSize === 'md' ? [{
+            title: t("staffs_col_role"),
             dataIndex: "role",
             key: "role",
+            width: screenSize === 'md' ? "20%" : "15%",
             render: (role) =>
                 role === "admin" ? (
-                    <Tag color="gold" style={{ fontWeight: 600 }}>
-                        <TeamOutlined /> {t("staffs_filter_admin")} {/* 👈 Dịch */}
+                    <Tag
+                        color="gold"
+                        style={{ fontWeight: 600, fontSize: 12, borderRadius: 4 }}
+                        icon={<TeamOutlined />}
+                    >
+                        {t("staffs_filter_admin")}
                     </Tag>
                 ) : (
-                    <Tag color="cyan" style={{ fontWeight: 600 }}>
-                        {t("staffs_filter_staff")} {/* 👈 Dịch */}
+                    <Tag
+                        color="cyan"
+                        style={{ fontWeight: 600, fontSize: 12, borderRadius: 4 }}
+                        icon={<TeamOutlined />}
+                    >
+                        {t("staffs_filter_staff")}
                     </Tag>
                 ),
-            filters: [
-                { text: t("staffs_filter_admin"), value: "admin" }, // 👈 Dịch
-                { text: t("staffs_filter_staff"), value: "staff" }, // 👈 Dịch
-            ],
-            onFilter: (value, record) => record.role === value,
-        },
+        }] : []),
         {
-            title: t("staffs_col_status"), // 👈 Dịch
+            title: t("staffs_col_status"),
             dataIndex: "status",
             key: "status",
-            width: 120,
+            width: screenSize === 'xs' ? "auto" : screenSize === 'sm' ? "25%" : "18%",
             render: (status, record) => (
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <Switch
-                        checkedChildren={<UnlockOutlined />}
-                        unCheckedChildren={<LockOutlined />}
+                        size={screenSize === 'xs' ? 'small' : 'default'}
+                        checkedChildren={screenSize !== 'xs' ? <CheckCircleOutlined /> : null}
+                        unCheckedChildren={screenSize !== 'xs' ? <StopOutlined /> : null}
                         checked={status === "active"}
                         onChange={() => handleToggleStatus(record.id)}
                     />
-                    <Text type="secondary" style={{ fontSize: 12 }}>
-                        {status === "active" ? t("staffs_status_active") : t("staffs_status_inactive")} {/* 👈 Dịch */}
-                    </Text>
+                    {screenSize !== 'xs' && (
+                        <Text type={status === "active" ? "success" : "secondary"} style={{ fontSize: 12 }}>
+                            {status === "active" ? t("staffs_status_active") : t("staffs_status_inactive")}
+                        </Text>
+                    )}
                 </div>
             ),
         },
         {
-            title: t("staffs_col_actions"), // 👈 Dịch
+            title: t("staffs_col_actions"),
             key: "action",
-            fixed: "right",
-            width: 170,
+            width: screenSize === 'xs' ? "auto" : screenSize === 'sm' ? "25%" : "17%",
             render: (_, record) => (
-                <Space>
-                    <Tooltip title={t("staffs_tip_edit")}> {/* 👈 Dịch */}
+                <Space size={screenSize === 'xs' ? "small" : "small"} wrap>
+                    <Tooltip title={t("staffs_tip_edit")}>
                         <Button
                             icon={<EditOutlined />}
-                            type="text"
+                            type="primary"
+                            ghost
+                            size="small"
                             onClick={() => handleEdit(record)}
                         />
                     </Tooltip>
 
-                    <Tooltip title={t("staffs_tip_reset_pwd")}> {/* 👈 Dịch */}
-                        <Button
-                            icon={<KeyOutlined />}
-                            type="text"
-                            onClick={() => handleResetPassword(record.id)}
-                        />
-                    </Tooltip>
+                    {screenSize !== 'xs' && (
+                        <Tooltip title={t("staffs_tip_reset_pwd")}>
+                            <Button
+                                icon={<KeyOutlined />}
+                                type="default"
+                                size="small"
+                                onClick={() => handleResetPassword(record.id)}
+                            />
+                        </Tooltip>
+                    )}
 
                     <Popconfirm
-                        title={t("staffs_confirm_delete")} // 👈 Dịch
+                        title={t("staffs_confirm_delete")}
                         onConfirm={() => handleDelete(record.id)}
-                        okText={t("delete")} // 👈 Dịch
-                        cancelText={t("cancel")} // 👈 Dịch
+                        okText={t("delete")}
+                        cancelText={t("cancel")}
                     >
-                        <Tooltip title={t("staffs_tip_delete")}> {/* 👈 Dịch */}
-                            <Button icon={<DeleteOutlined />} type="text" danger />
+                        <Tooltip title={t("staffs_tip_delete")}>
+                            <Button icon={<DeleteOutlined />} type="primary" danger size="small" />
                         </Tooltip>
                     </Popconfirm>
                 </Space>
@@ -395,18 +432,25 @@ export default function Staffs() {
                 borderRadius: 12,
             }}
         >
-            <Row justify="space-between" align="middle">
-                <Col>
+            <Row 
+                justify="space-between" 
+                align="middle"
+                gutter={[16, 16]}
+            >
+                <Col xs={24} sm={24} md={6}>
                     <Title
-                        level={3}
+                        level={2}
                         style={{
                             display: "flex",
                             alignItems: "center",
-                            gap: 12,
+                            gap: 16,
                             marginBottom: 0,
+                            color: "#262626ff",
+                            fontWeight: 800,
+                            whiteSpace: "nowrap"
                         }}
                     >
-                        <UserOutlined
+                        <TeamOutlined
                             style={{
                                 color: "#fff",
                                 backgroundColor: "Teal",
@@ -414,18 +458,26 @@ export default function Staffs() {
                                 padding: 10,
                                 fontSize: 20,
                                 boxShadow: "0 4px 10px rgba(114,46,209,0.2)",
+                                flexShrink: 0
                             }}
                         />
-                        <span style={{ fontWeight: 700 }}>{t("staffs_title")}</span> {/* 👈 Dịch */}
+                        <span style={{ fontWeight: 700 }}>{t("staffs_title")}</span>
                     </Title>
                 </Col>
 
-                <Col>
-                    <Space>
+                <Col xs={24} sm={24} md={18} style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <Space
+                        direction={screenSize === 'xs' ? 'vertical' : 'horizontal'}
+                        style={{ width: screenSize === 'xs' ? '100%' : 'auto' }}
+                    >
                         <Input
                             prefix={<SearchOutlined />}
-                            placeholder={t("staffs_search_placeholder")} // 👈 Dịch
-                            style={{ width: 300, borderRadius: 8 }}
+                            placeholder={t("staffs_search_placeholder")}
+                            style={{ 
+                                width: screenSize === 'xs' ? '100%' : 280, 
+                                borderRadius: 8 
+                            }}
+                            size={screenSize === 'xs' ? 'small' : 'middle'}
                             value={q}
                             onChange={(e) => setQ(e.target.value)}
                             allowClear
@@ -434,21 +486,30 @@ export default function Staffs() {
                         <Select
                             value={roleFilter}
                             onChange={(val) => setRoleFilter(val)}
-                            style={{ width: 140, borderRadius: 8 }}
+                            style={{ width: screenSize === 'xs' ? '100%' : 140, borderRadius: 8 }}
+                            size={screenSize === 'xs' ? 'small' : 'middle'}
                         >
                             {roles.map((r) => (
                                 <Option key={r} value={r}>
-                                    {r === "all" ? t("staffs_filter_all") : r === "admin" ? t("staffs_filter_admin") : t("staffs_filter_staff")} {/* 👈 Dịch */}
+                                    {r === "all" ? t("staffs_filter_all") : r === "admin" ? t("staffs_filter_admin") : t("staffs_filter_staff")}
                                 </Option>
                             ))}
                         </Select>
+
                         <Button
                             type="primary"
                             icon={<PlusOutlined />}
                             onClick={handleAdd}
-                            style={{ borderRadius: 8, backgroundColor: "#0a75bbff",}}
+                            style={{
+                                borderRadius: 8,
+                                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                                border: "none",
+                                fontWeight: 600,
+                                width: screenSize === 'xs' ? '100%' : 'auto'
+                            }}
+                            size={screenSize === 'xs' ? 'small' : 'middle'}
                         >
-                            {t("staffs_btn_add")} {/* 👈 Dịch */}
+                            {screenSize === 'xs' ? '+' : t("staffs_btn_add")}
                         </Button>
                     </Space>
                 </Col>
@@ -468,37 +529,39 @@ export default function Staffs() {
                     columns={columns}
                     dataSource={filtered}
                     rowKey="id"
-                    size="middle"
+                    size={screenSize === 'xs' ? 'small' : 'middle'}
                     pagination={{
                         position: ["bottomCenter"],
-                        pageSize: 6,
+                        pageSize: screenSize === 'xs' ? 3 : screenSize === 'sm' ? 4 : 6,
                         showSizeChanger: false,
                     }}
-                    scroll={{ x: 900 }}
+                    scroll={{ x: screenSize === 'xs' ? 360 : screenSize === 'sm' ? 600 : undefined }}
                 />
             </Card>
 
             <Modal
-                title={editing ? t("staffs_modal_edit") : t("staffs_modal_add")} // 👈 Dịch
-                visible={modalVisible}
+                title={editing ? t("staffs_modal_edit") : t("staffs_modal_add")}
+                open={modalVisible}
                 onCancel={() => {
                     setModalVisible(false);
                     setEditing(null);
                     form.resetFields();
                 }}
                 onOk={handleSubmitForm}
-                okText={editing ? t("update") : t("add")} // 👈 Dịch
-                cancelText={t("cancel")} // 👈 Dịch
+                okText={editing ? t("update") : t("add")}
+                cancelText={t("cancel")}
                 maskClosable={false}
                 destroyOnClose
+                width={screenSize === 'xs' ? '95%' : 500}
+                style={{ top: screenSize === 'xs' ? 20 : undefined }}
             >
                 <Form form={form} layout="vertical" preserve={false}>
                     <Form.Item
-                        label={t("staffs_label_name")} // 👈 Dịch
+                        label={t("staffs_label_name")}
                         name="fullName"
-                        rules={[{ required: true, message: t("staffs_msg_name_required") }]} // 👈 Dịch
+                        rules={[{ required: true, message: t("staffs_msg_name_required") }]}
                     >
-                        <Input placeholder={t("staffs_label_name")} /> {/* 👈 Dịch */}
+                        <Input placeholder={t("staffs_label_name")} />
                     </Form.Item>
 
                     <Form.Item
@@ -506,32 +569,55 @@ export default function Staffs() {
                         name="email"
                         rules={[
                             { required: true, message: "Vui lòng nhập email" },
-                            { type: "email", message: t("staffs_msg_email_invalid") }, // 👈 Dịch
+                            { type: "email", message: t("staffs_msg_email_invalid") },
                         ]}
                     >
                         <Input placeholder="email@domain.com" />
                     </Form.Item>
 
-                    <Form.Item label={t("staffs_col_phone")} name="phone"> {/* 👈 Dịch */}
-                        <Input placeholder={t("staffs_placeholder_phone")} /> {/* 👈 Dịch */}
+                    <Form.Item label={t("staffs_col_phone")} name="phone">
+                        <Input placeholder={t("staffs_placeholder_phone")} />
                     </Form.Item>
 
                     <Form.Item
-                        label={t("staffs_col_role")} // 👈 Dịch
+                        label={t("staffs_col_role")}
                         name="role"
                         rules={[{ required: true, message: t("staffs_msg_role_required") }]}
                     >
                         <Select>
-                            <Option value="staff">{t("staffs_filter_staff")}</Option> {/* 👈 Dịch */}
-                            <Option value="admin">{t("staffs_filter_admin")}</Option> {/* 👈 Dịch */}
+                            <Option value="staff">{t("staffs_filter_staff")}</Option>
+                            <Option value="admin">{t("staffs_filter_admin")}</Option>
                         </Select>
                     </Form.Item>
 
-                    <Form.Item label={t("staffs_col_status")} name="status" valuePropName="checked"> {/* 👈 Dịch */}
+                    <Form.Item label={t("staffs_col_status")} name="status" valuePropName="checked">
                         <Switch />
                     </Form.Item>
                 </Form>
             </Modal>
+
+            <style>{`
+                @media (max-width: 768px) {
+                    .ant-table {
+                        font-size: 12px;
+                    }
+                    .ant-table-cell {
+                        padding: 8px 12px;
+                    }
+                }
+                
+                @media (max-width: 576px) {
+                    .ant-table {
+                        font-size: 11px;
+                    }
+                    .ant-table-cell {
+                        padding: 6px 8px;
+                    }
+                    .ant-btn {
+                        padding: 4px 8px;
+                    }
+                }
+            `}</style>
         </Space>
     );
 }

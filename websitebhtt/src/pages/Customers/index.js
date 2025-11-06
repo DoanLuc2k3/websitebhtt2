@@ -12,7 +12,9 @@ import {
     MailOutlined,
     UserSwitchOutlined, 
     CheckCircleOutlined,
-    ShoppingCartOutlined
+    ShoppingCartOutlined,
+    LockOutlined,
+    UnlockOutlined
 } from "@ant-design/icons";
 import {
     Avatar,
@@ -34,6 +36,7 @@ import {
     Timeline 
 } from "antd";
 import { useTranslation } from "react-i18next";
+import { getStoredUsers, setUserDisabled, updateStoredUser } from "../../data/authService";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -187,35 +190,88 @@ function Customers() {
     
     // --- 2. LOGIC FETCH VÀ ÁNH XẠ DỮ LIỆU TRONG useEffect ---
     useEffect(() => {
-        setLoading(true);
-        // Gọi hàm fetch API thực
-        getCustomers().then((res) => {
-            const usersData = (res.users || []).map((user) => {
-                
-                // --- Bổ sung logic ánh xạ từ API city sang city_en/city (mock) ---
-                const apiCity = user.address?.city || "Unknown";
-                const mappedCity = cityMap[apiCity] || { vi: apiCity, en: apiCity };
+        let mounted = true;
+        const load = async () => {
+            setLoading(true);
+            try {
+                const res = await getCustomers();
+                const usersData = (res.users || []).map((user) => {
+                    const apiCity = user.address?.city || "Unknown";
+                    const mappedCity = cityMap[apiCity] || { vi: apiCity, en: apiCity };
 
-                return {
-                    ...user,
-                    // Giữ lại logic tạo dữ liệu ngẫu nhiên
-                    totalOrders: Math.floor(Math.random() * 8) + 1, 
-                    joinDate: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000).toLocaleDateString(i18n.language), 
-                    key: user.id,
+                    return {
+                        ...user,
+                        totalOrders: Math.floor(Math.random() * 8) + 1,
+                        joinDate: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000).toLocaleDateString(i18n.language),
+                        key: user.id,
+                        address: {
+                            city: mappedCity.vi,
+                            city_en: mappedCity.en,
+                            ...user.address,
+                        },
+                    };
+                });
 
-                    // Cập nhật cấu trúc address theo yêu cầu của component
-                    address: {
-                        city: mappedCity.vi, 
-                        city_en: mappedCity.en, 
-                        ...user.address 
-                    }
-                };
-            });
-            setDataSource(usersData);
-            setFilteredData(usersData);
-            setLoading(false);
-        });
-    }, [i18n.language]); 
+                // Merge local registered users (from registerUser -> localStorage)
+                const localUsersRaw = getStoredUsers();
+                const localMapped = (localUsersRaw || []).map((u) => ({
+                    id: u.id,
+                    key: u.id,
+                    firstName: u.firstName || u.username || 'User',
+                    lastName: u.lastName || '',
+                    email: u.email || `${u.username}@local`,
+                    phone: u.phone || '',
+                    image: u.image || null,
+                    totalOrders: 0,
+                    joinDate: new Date().toLocaleDateString(i18n.language),
+                    address: { city: 'Local', city_en: 'Local' },
+                    _isLocal: true,
+                    disabled: !!u.disabled,
+                }));
+
+                const merged = [...localMapped, ...usersData];
+
+                if (mounted) {
+                    setDataSource(merged);
+                    setFilteredData(merged);
+                }
+            } catch (e) {
+                console.error('Failed to load customers', e);
+                if (mounted) {
+                    setDataSource([]);
+                    setFilteredData([]);
+                }
+            } finally {
+                if (mounted) setLoading(false);
+            }
+        };
+
+        load();
+
+        // Listen to registration updates from other parts of app and storage events (cross-tab)
+        const onUsersUpdated = () => {
+            load();
+        };
+        window.addEventListener('my_app_users_updated', onUsersUpdated);
+
+        const onStorage = (ev) => {
+            try {
+                if (ev.key === 'my_app_users') {
+                    // another tab changed stored users, reload
+                    load();
+                }
+            } catch (err) {
+                // ignore
+            }
+        };
+        window.addEventListener('storage', onStorage);
+
+        return () => {
+            mounted = false;
+            window.removeEventListener('my_app_users_updated', onUsersUpdated);
+            window.removeEventListener('storage', onStorage);
+        };
+    }, [i18n.language]);
 
     useEffect(() => {
         let filtered = dataSource.filter((item) => {
@@ -272,8 +328,25 @@ function Customers() {
         });
 
         setDataSource(updatedData);
+
+        // Nếu là user local (được đăng ký trong app) thì persist thay đổi vào localStorage
+        if (selectedCustomer && selectedCustomer._isLocal) {
+            try {
+                const payload = {
+                    id: selectedCustomer.id,
+                    firstName: values.firstName,
+                    lastName: values.lastName,
+                    email: values.email,
+                    phone: values.phone,
+                };
+                updateStoredUser(payload);
+            } catch (err) {
+                console.error('Failed to persist edited user', err);
+            }
+        }
+
         setIsEditModalVisible(false);
-        message.success(`✅ ${t("cus_msg_update_success", { name: values.firstName })}`); 
+        message.success(`✅ ${t("cus_msg_update_success", { name: values.firstName })}`);
     };
 
     const showActivityDrawer = (record) => {
@@ -368,6 +441,11 @@ function Customers() {
                     <Space direction="vertical" size={0}>
                         <Text strong style={{ color: "#2c3e50" }}>
                             {record.firstName} {record.lastName}
+                            {record.disabled && (
+                                <Tag color="error" style={{ marginLeft: 8, fontSize: 11 }}>
+                                    Tài khoản bị khoá
+                                </Tag>
+                            )}
                         </Text>
                         <Text type="secondary" style={{ fontSize: 13 }}>
                             {record.email}
@@ -485,6 +563,26 @@ function Customers() {
                             size="middle" 
                             style={{ color: '#2ecc71' }} 
                             onClick={() => showContactModal(record)}
+                        />
+                    </Tooltip>
+                    <Tooltip title={record.disabled ? 'Kích hoạt tài khoản' : 'Vô hiệu hoá tài khoản'}>
+                        <Button
+                            icon={record.disabled ? <UnlockOutlined /> : <LockOutlined />}
+                            type="text"
+                            size="middle"
+                            style={{ color: record.disabled ? '#27ae60' : '#e74c3c' }}
+                            onClick={async () => {
+                                try {
+                                    if (!record._isLocal) {
+                                        message.warning('Chỉ có thể vô hiệu hoá tài khoản đã đăng ký trong hệ thống này.');
+                                        return;
+                                    }
+                                    setUserDisabled(record.id, !record.disabled);
+                                    message.success(record.disabled ? 'Tài khoản đã được kích hoạt' : 'Tài khoản đã bị vô hiệu hoá');
+                                } catch (err) {
+                                    message.error('Không thể thay đổi trạng thái tài khoản.');
+                                }
+                            }}
                         />
                     </Tooltip>
                 </Space>

@@ -16,22 +16,25 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
 
   const onFinish = async (values) => {
-    const { username, password } = values;
+    const { username, password, phone } = values;
     setLoading(true);
 
     try {
+      const payload = {
+        username,
+        password,
+        phone: phone || '',
+      };
+
       // Gọi hàm register (lưu vào localStorage)
-      const newUserData = await registerUser(username, password);
-      
+      const newUserData = await registerUser(payload);
       console.log("User mới đã được lưu vào localStorage:", newUserData);
       message.success("Đăng ký thành công! Đang chuyển đến trang đăng nhập...");
 
       setTimeout(() => {
         navigate("/login");
-      }, 2000);
-
+      }, 1200);
     } catch (error) {
-      // Lỗi sẽ được ném ra (vd: 'Tên đăng nhập đã tồn tại')
       message.error(error.message);
       setLoading(false); // Chỉ set false khi lỗi
     }
@@ -78,6 +81,10 @@ const Register = () => {
                   ]}
                 >
                   <Input placeholder="Username" />
+                </Form.Item>
+
+                <Form.Item label="Phone" name="phone">
+                  <Input placeholder="Phone number (optional)" />
                 </Form.Item>
                 <Form.Item
                   label="Password"

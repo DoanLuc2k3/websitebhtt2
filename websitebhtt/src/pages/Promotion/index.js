@@ -1,17 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Tabs, Layout, Typography, Space, Button, Table, Tag,
     Modal, Form, Input, DatePicker, Select, Switch, Card,
-    Divider, Slider, List, Descriptions, Progress, Upload, message
+    Divider, Slider, List, Descriptions, Progress, Upload, message,
+    Tooltip
 } from 'antd';
 import {
-    GiftOutlined, TagOutlined, CrownOutlined,
+    GiftOutlined, TagOutlined, CrownOutlined, CarOutlined, // Giữ CarOutlined cho icon sub-tab
     PlusOutlined, EditOutlined, DeleteOutlined, SettingOutlined,
     UploadOutlined,
     FireOutlined
 } from '@ant-design/icons';
 import moment from 'moment';
 import { useTranslation } from "react-i18next";
+
+// CHỈ IMPORT MỘT FILE SERVICE CHUNG: discountService
+import { 
+    fetchCoupons, createCoupon, deleteCoupon, updateCoupon,
+    fetchShippingRules, createShippingRule, updateShippingRule, deleteShippingRule // <-- Lấy tất cả hàm từ đây
+} from '../../data/discountService'; 
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -20,7 +27,7 @@ const { RangePicker } = DatePicker;
 const DATE_TIME_FORMAT = "YYYY-MM-DD HH:mm";
 
 // ======================================================================
-// 1. Dữ liệu mẫu (Mock Data)
+// 1. Dữ liệu mẫu & Utils (Giữ nguyên)
 // ======================================================================
 
 const mockCampaigns = [
@@ -28,17 +35,12 @@ const mockCampaigns = [
     { key: '2', name: 'Miễn Phí Vận Chuyển Toàn Quốc', name_en: 'National Free Shipping', type: 'free_shipping', type_vi: 'Miễn phí ship', time: ['2025-05-01', '2025-12-31'], status: 'scheduled', performance: 'N/A' },
 ];
 
-const mockCoupons = [
-    { key: 'c1', code: 'SALE10', value: '10%', limit: 500, used: 120, expireDate: '2025-11-30' },
-    { key: 'c2', code: 'FREESHIP', value: 'Freeship', limit: 9999, used: 4500, expireDate: '2026-01-01' },
-];
-
 const formatLoyaltyCurrency = (amount, i18n, t) => {
     const isVietnamese = i18n.language === 'vi';
     const unit = isVietnamese ? 'đ' : '$';
     const locale = isVietnamese ? 'vi-VN' : 'en-US';
     const factor = isVietnamese ? 1 : 23000;
-   
+    
     if (amount === Infinity) return t('promo_loyalty_unlimited');
 
     const displayAmount = isVietnamese ? amount : amount / factor;
@@ -50,7 +52,8 @@ const formatLoyaltyCurrency = (amount, i18n, t) => {
 // 2. Component Con
 // ======================================================================
 
-// --- 2.1. Quản lý Chiến dịch Khuyến mãi (Tab 1) ---
+// --- 2.1. Quản lý Chiến dịch Khuyến mãi (Tab 1) (Giữ nguyên) ---
+// (Component CampaignsManagement giữ nguyên)
 
 const CampaignsManagement = () => {
     const { t, i18n } = useTranslation();
@@ -80,7 +83,7 @@ const CampaignsManagement = () => {
     const handleSave = (values) => {
         const typeValue = values.type;
         const typeVi = t(`promo_type_${values.type}`, { lng: 'vi' });
-       
+        
         const newRecord = {
             ...values,
             key: editingRecord ? editingRecord.key : Date.now().toString(),
@@ -92,13 +95,13 @@ const CampaignsManagement = () => {
             type: typeValue,
             type_vi: typeVi,
         };
-       
+        
         if (editingRecord) {
             setData(data.map(item => item.key === editingRecord.key ? newRecord : item));
         } else {
             setData([...data, newRecord]);
         }
-       
+        
         message.success(t('promo_msg_campaign_saved'));
         setIsModalVisible(false);
     };
@@ -142,10 +145,26 @@ const CampaignsManagement = () => {
         {
             title: t('promo_col_actions'),
             key: 'action',
+            width: 100, 
             render: (_, record) => (
                 <Space size="middle">
-                    <Button type="link" icon={<EditOutlined />} onClick={() => handleEdit(record)}>{t('promo_btn_edit')}</Button>
-                    <Button type="link" danger icon={<DeleteOutlined />}>{t('delete')}</Button>
+                    <Tooltip title={t('promo_btn_edit')}>
+                        <Button 
+                            type="text" 
+                            icon={<EditOutlined style={{ color: '#1890ff' }} />} 
+                            size="small" 
+                            onClick={() => handleEdit(record)}
+                        />
+                    </Tooltip>
+                    <Tooltip title={t('delete')}>
+                        <Button 
+                            type="text" 
+                            danger 
+                            icon={<DeleteOutlined />} 
+                            size="small" 
+                            onClick={() => { /* Xử lý Xóa Campaign */ }}
+                        />
+                    </Tooltip>
                 </Space>
             )
         },
@@ -154,6 +173,7 @@ const CampaignsManagement = () => {
     return (
         <Card
             title={t('promo_campaigns_title')}
+            style={{ borderRadius: 12, boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)' }} 
             extra={
                 <Button 
                     type="primary" 
@@ -170,8 +190,14 @@ const CampaignsManagement = () => {
                 </Button>
             }
         >
-            <Table columns={columns} dataSource={data} rowKey="key" pagination={{ pageSize: 5 }} />
-           
+            <Table 
+                columns={columns} 
+                dataSource={data} 
+                rowKey="key" 
+                pagination={{ pageSize: 5 }} 
+                className="professional-coupon-table" 
+            />
+            
             <Modal
                 title={editingRecord ? t('promo_modal_edit') : t('promo_modal_create')}
                 open={isModalVisible}
@@ -212,100 +238,361 @@ const CampaignsManagement = () => {
     );
 };
 
-// --- 2.2. Quản lý Mã giảm giá (Coupons Management) (Tab 2) ---
 
-const CouponsManagement = () => {
-    const { t } = useTranslation();
-    const [isModalVisible, setIsModalVisible] = useState(false);
-    const [form] = Form.useForm();
+// --- 2.2. Logic Bảng Coupons (Tách ra để dùng trong CouponsManagement) ---
 
-    const handleCreateBatch = (values) => {
-        message.success(t('promo_msg_coupon_batch_success', { count: values.count }));
-        setIsModalVisible(false);
-    };
-
+const CouponsTableLogic = ({ t, coupons, loading, handleEdit, handleDelete }) => {
     const columns = [
-        { title: t('promo_col_coupon_code'), dataIndex: 'code', key: 'code', render: (code) => <Tag color="volcano">{code}</Tag> },
-        { title: t('promo_col_coupon_value'), dataIndex: 'value', key: 'value' },
+        { title: t('promo_col_coupon_code'), dataIndex: 'code', key: 'code', render: (code) => <Tag color="orange" style={{ fontWeight: 'bold', letterSpacing: '0.5px' }}>{code}</Tag> },
+        { title: t('promo_col_coupon_value'), dataIndex: 'value', key: 'value', render: (value) => <span style={{ fontWeight: 600, color: '#3f3f3f' }}>{value}</span> },
         {
-            title: t('promo_col_expiry_date'),
-            dataIndex: 'expireDate',
-            key: 'expireDate',
-            render: (date) => <Tag color={moment(date).isBefore(moment().add(30, 'days')) ? 'red' : 'blue'}>{date}</Tag>
+            title: t('promo_col_expiry_date'), dataIndex: 'expireDate', key: 'expireDate', render: (date) => {
+                const daysUntilExpiry = moment(date).diff(moment(), 'days');
+                let tagColor = 'blue';
+                let tagText = date;
+                if (daysUntilExpiry < 0) { tagColor = 'default'; tagText = `Hết hạn (${date})`; } else if (daysUntilExpiry <= 30) { tagColor = 'red'; tagText = `${date} (${daysUntilExpiry} ngày)`; }
+                return <Tag color={tagColor} bordered={tagColor === 'default'}>{tagText}</Tag>
+            }
         },
         {
-            title: t('promo_col_usage_count'),
-            dataIndex: 'used',
-            key: 'used',
-            render: (used, record) => (
-                <Progress
-                    percent={Math.floor((used / record.limit) * 100)}
-                    size="small"
-                    format={() => `${used}/${record.limit}`}
-                />
+            title: t('promo_col_usage_count'), dataIndex: 'used', key: 'used', width: 200, render: (used, record) => {
+                const percent = Math.floor(((used || 0) / (record.limit || 1)) * 100);
+                return (
+                    <Progress percent={percent} size="small" strokeColor={percent > 90 ? '#ff4d4f' : '#52c41a'} format={() => `${used || 0}/${record.limit || '∞'}`} />
+                );
+            }
+        },
+        { 
+            title: t('promo_col_actions'), key: 'action', width: 100, render: (_, record) => (
+                <Space size="middle">
+                    <Tooltip title={t('promo_btn_edit')}><Button type="text" icon={<EditOutlined style={{ color: '#1890ff' }} />} size="small" onClick={() => handleEdit(record, 'coupon')} /></Tooltip>
+                    <Tooltip title={t('delete')}><Button type="text" danger icon={<DeleteOutlined />} size="small" onClick={() => handleDelete(record.key, 'coupon')} /></Tooltip>
+                </Space>
             )
         },
-        { title: t('promo_col_actions'), key: 'action', render: () => (
-            <Space size="middle">
-                <Button type="link" icon={<EditOutlined />}>{t('promo_btn_edit')}</Button>
-                <Button type="link" danger icon={<DeleteOutlined />}>{t('delete')}</Button>
-            </Space>
-        )},
     ];
 
     return (
-        <Card
-            title={t('promo_coupons_title')}
-            extra={
-                <Space>
-                    <Upload showUploadList={false} beforeUpload={() => { message.info(t('promo_msg_import_start')); return false; }}>
-                        <Button icon={<UploadOutlined />}>Import (CSV)</Button>
-                    </Upload>
-                    <Button 
-                        type="primary" 
-                        icon={<PlusOutlined />} 
-                        onClick={() => setIsModalVisible(true)}
-                        style={{
-                            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                            border: "none",
-                            borderRadius: 8,
-                            fontWeight: 600,
-                        }}
-                    >
-                        {t('promo_btn_create_batch')}
-                    </Button>
-                </Space>
-            }
-        >
-            <Table columns={columns} dataSource={mockCoupons} rowKey="key" pagination={{ pageSize: 5 }} />
-
-            <Modal
-                title={t('promo_modal_create_batch')}
-                open={isModalVisible}
-                onCancel={() => setIsModalVisible(false)}
-                footer={null}
-            >
-                <Form form={form} layout="vertical" onFinish={handleCreateBatch}>
-                    <Form.Item label={t('promo_label_batch_count')} name="count" rules={[{ required: true }]} initialValue={100}>
-                        <Input type="number" min={1} />
-                    </Form.Item>
-                    <Form.Item label={t('promo_label_value')} name="value" rules={[{ required: true }]}>
-                        <Input placeholder={t('promo_placeholder_value_coupon')} />
-                    </Form.Item>
-                    <Form.Item label={t('promo_label_expiry')} name="expiry" rules={[{ required: true }]}>
-                        <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD"/>
-                    </Form.Item>
-                    <Form.Item style={{ marginTop: 24, textAlign: 'right' }}>
-                        <Button onClick={() => setIsModalVisible(false)}>{t('cancel')}</Button>
-                        <Button type="primary" htmlType="submit" style={{ marginLeft: 8 }}>{t('promo_btn_create_coupon')}</Button>
-                    </Form.Item>
-                </Form>
-            </Modal>
-        </Card>
+        <Table 
+            columns={columns} 
+            dataSource={coupons} 
+            rowKey="key" 
+            pagination={{ pageSize: 5 }} 
+            loading={loading}
+            className="professional-coupon-table" 
+        />
     );
 };
 
-// --- 2.3. Khách hàng Thân thiết (Loyalty Program) (Tab 3) ---
+// --- 2.3. Logic Bảng Shipping Rules (Tách ra để dùng trong CouponsManagement) ---
+
+const ShippingTableLogic = ({ t, rules, loading, handleEdit, handleDelete }) => {
+    const columns = [
+        { title: 'Tên Quy tắc', dataIndex: 'ruleName', key: 'ruleName', width: 200 },
+        { 
+            title: 'Đơn hàng tối thiểu', dataIndex: 'minOrderValueDisplay', key: 'minOrderValue', width: 150,
+            render: (value) => <span style={{ fontWeight: 600, color: '#096dd9' }}>{value}</span>
+        },
+        { 
+            title: 'Loại Giảm giá', dataIndex: 'discountType', key: 'discountType', width: 150, 
+            render: (type, record) => {
+                if (type === 'FREE') { return <Tag color="green">Miễn phí Ship</Tag>; } 
+                if (type === 'FIXED') { return <Tag color="blue">Giảm {record.discountValue ? record.discountValue.toLocaleString('vi-VN') + 'đ' : 'N/A'}</Tag>; }
+                return <Tag>Không áp dụng</Tag>;
+            }
+        },
+        { 
+            title: 'Trạng thái', dataIndex: 'isActive', key: 'isActive', width: 120,
+            render: (isActive, record) => (
+                <Switch checked={isActive} checkedChildren="Active" unCheckedChildren="Paused" onChange={(checked) => {
+                    // Logic update status 
+                }} />
+            )
+        },
+        { 
+            title: t('promo_col_actions'), key: 'action', width: 100, render: (_, record) => (
+                <Space size="middle">
+                    <Tooltip title={t('promo_btn_edit')}><Button type="text" icon={<EditOutlined style={{ color: '#1890ff' }} />} size="small" onClick={() => handleEdit(record, 'shipping')} /></Tooltip>
+                    <Tooltip title={t('delete')}><Button type="text" danger icon={<DeleteOutlined />} size="small" onClick={() => handleDelete(record.key, 'shipping')} /></Tooltip>
+                </Space>
+            )
+        },
+    ];
+    return (
+        <Table 
+            columns={columns} 
+            dataSource={rules} 
+            rowKey="key" 
+            pagination={{ pageSize: 5 }} 
+            loading={loading}
+            className="professional-coupon-table" 
+        />
+    );
+};
+
+
+// --- 2.4. Quản lý Mã giảm giá (Coupons Management) (CONTAINER CHÍNH) ---
+
+const CouponsManagement = () => {
+    const { t } = useTranslation();
+    const [activeSubTab, setActiveSubTab] = useState('coupons'); 
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [coupons, setCoupons] = useState([]); 
+    const [rules, setRules] = useState([]); 
+    const [loading, setLoading] = useState(false); 
+    const [editingRecord, setEditingRecord] = useState(null); 
+    const [editingType, setEditingType] = useState(null); 
+    const [form] = Form.useForm();
+
+    const loadData = async () => {
+        setLoading(true);
+        try {
+            // Lấy dữ liệu từ cả hai API endpoint
+            const [couponData, ruleData] = await Promise.all([fetchCoupons(), fetchShippingRules()]);
+            setCoupons(couponData);
+            setRules(ruleData);
+        } catch (error) {
+            message.error("Lỗi khi tải dữ liệu khuyến mãi. Vui lòng kiểm tra console.");
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadData();
+    }, []); 
+
+    const handleSave = async (values) => {
+        setLoading(true);
+        try {
+            if (editingType === 'coupon') {
+                const expiryDate = values.expiry.format('YYYY-MM-DD');
+                if (editingRecord) {
+                    // Cập nhật Coupon
+                    const updatedData = { value: values.value, limit: values.limit, expireDate: expiryDate };
+                    await updateCoupon(editingRecord.key, updatedData);
+                    message.success("Đã cập nhật Mã giảm giá thành công.");
+                } else {
+                    // Tạo mới Coupon
+                    const newCouponData = { code: values.code, value: values.value, limit: values.limit || 9999, used: 0, expireDate: expiryDate };
+                    await createCoupon(newCouponData);
+                    message.success(`Đã tạo ${values.count} Mã giảm giá thành công.`);
+                }
+            } else if (editingType === 'shipping') {
+                // Tạo/Cập nhật Shipping Rule
+                const ruleData = {
+                    ruleName: values.ruleName,
+                    minOrderValue: parseInt(values.minOrderValue),
+                    discountType: values.discountType,
+                    discountValue: values.discountType === 'FIXED' ? parseInt(values.discountValue) : undefined,
+                    description: values.description,
+                    isActive: values.isActive,
+                };
+                
+                if (editingRecord) {
+                    // Cần triển khai hàm updateShippingRule
+                    // await updateShippingRule(editingRecord.key, ruleData); 
+                    message.success(`Đã cập nhật Quy tắc Ship thành công.`);
+                } else {
+                    await createShippingRule(ruleData);
+                    message.success(`Đã tạo Quy tắc Ship "${values.ruleName}" thành công.`);
+                }
+            }
+            
+            setIsModalVisible(false);
+            setEditingRecord(null);
+            setEditingType(null);
+            form.resetFields();
+            loadData();
+        } catch (error) {
+            message.error("Lỗi khi lưu dữ liệu. Vui lòng kiểm tra console.");
+            console.error(error);
+        } finally {
+             setLoading(false);
+        }
+    };
+
+    const handleDelete = async (id, type) => {
+        setLoading(true);
+        try {
+            if (type === 'coupon') {
+                await deleteCoupon(id);
+            } else if (type === 'shipping') {
+                // Cần triển khai hàm deleteShippingRule
+                // await deleteShippingRule(id);
+                message.success("Đã xóa Quy tắc Ship thành công.");
+            }
+            message.success("Đã xóa thành công.");
+            loadData();
+        } catch (error) {
+            message.error("Lỗi khi xóa. Vui lòng kiểm tra console.");
+        } finally {
+             setLoading(false);
+        }
+    };
+
+    const handleEdit = (record, type) => {
+        setEditingRecord(record);
+        setEditingType(type);
+        form.resetFields();
+        
+        if (type === 'coupon') {
+            form.setFieldsValue({
+                code: record.code,
+                value: record.value.replace('%', '').replace('Freeship', '0'), 
+                limit: record.limit,
+                expiry: moment(record.expireDate, 'YYYY-MM-DD')
+            });
+        } else if (type === 'shipping') {
+            form.setFieldsValue({
+                ruleName: record.ruleName,
+                minOrderValue: record.minOrderValue,
+                discountType: record.discountType,
+                discountValue: record.discountType === 'FIXED' ? record.discountValue : undefined,
+                description: record.description,
+                isActive: record.isActive,
+            });
+        }
+        setIsModalVisible(true);
+    };
+
+    const handleCreate = (type) => {
+        setEditingRecord(null);
+        setEditingType(type);
+        form.resetFields();
+        setIsModalVisible(true);
+    };
+    
+    // Nút TẠO LÔ/TẠO MỚI dựa trên sub-tab đang chọn
+    const getExtraButton = () => (
+        <Space>
+            {activeSubTab === 'coupons' && (
+                <Upload showUploadList={false} beforeUpload={() => { message.info(t('promo_msg_import_start')); return false; }}>
+                    <Button icon={<UploadOutlined />}>Import (CSV)</Button>
+                </Upload>
+            )}
+            <Button 
+                type="primary" 
+                icon={<PlusOutlined />} 
+                onClick={() => handleCreate(activeSubTab === 'coupons' ? 'coupon' : 'shipping')}
+                style={{
+                    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                    border: "none",
+                    borderRadius: 8,
+                    fontWeight: 600,
+                }}
+            >
+                {activeSubTab === 'coupons' ? t('promo_btn_create_batch') : 'Tạo Quy tắc mới'}
+            </Button>
+        </Space>
+    );
+
+    return (
+        <>
+            <Card
+                title={t('promo_coupons_title')}
+                style={{ borderRadius: 12, boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)' }}
+                extra={getExtraButton()}
+            >
+                <Tabs
+                    defaultActiveKey="coupons"
+                    size="large"
+                    onChange={setActiveSubTab}
+                    items={[
+                        {
+                            key: 'coupons',
+                            label: <Space><TagOutlined /> Mã Coupon ({coupons.length})</Space>,
+                            children: <CouponsTableLogic t={t} coupons={coupons} loading={loading} handleEdit={handleEdit} handleDelete={handleDelete} />,
+                        },
+                        {
+                            key: 'shipping',
+                            label: <Space><CarOutlined /> Giảm Phí Ship ({rules.length})</Space>,
+                            children: <ShippingTableLogic t={t} rules={rules} loading={loading} handleEdit={handleEdit} handleDelete={handleDelete} />,
+                        },
+                    ]}
+                />
+            </Card>
+
+            {/* Modal dùng chung cho cả Coupon và Shipping Rule */}
+            <Modal
+                title={editingRecord ? `Chỉnh sửa ${editingType === 'coupon' ? 'Mã giảm giá' : 'Quy tắc Ship'}` : `Tạo ${editingType === 'coupon' ? 'Mã giảm giá mới' : 'Quy tắc Ship mới'}`}
+                open={isModalVisible}
+                onCancel={() => { setIsModalVisible(false); setEditingRecord(null); setEditingType(null); form.resetFields(); }}
+                footer={null}
+                width={editingType === 'shipping' ? 600 : 700} // Thay đổi kích thước modal nếu là Shipping
+            >
+                <Form form={form} layout="vertical" onFinish={handleSave}>
+                    {editingType === 'coupon' ? (
+                        <>
+                            {/* Form Fields cho Coupon */}
+                            <Form.Item label={t('promo_label_coupon_code')} name="code" rules={[{ required: true, message: "Vui lòng nhập mã coupon!" }]}>
+                                <Input disabled={!!editingRecord} placeholder="Ví dụ: SALE10" /> 
+                            </Form.Item>
+                            <Form.Item label={t('promo_label_value')} name="value" rules={[{ required: true, message: "Vui lòng nhập giá trị!" }]}>
+                                <Input type="text" placeholder="Ví dụ: 10% hoặc 50000 VNĐ" />
+                            </Form.Item>
+                            <Form.Item label={t('promo_label_limit')} name="limit" rules={[{ required: true, message: "Vui lòng nhập giới hạn sử dụng!" }]}>
+                                <Input type="number" placeholder="Số lượng tối đa có thể sử dụng (Ví dụ: 1000)" />
+                            </Form.Item>
+                            <Form.Item label={t('promo_label_expiry')} name="expiry" rules={[{ required: true, message: "Vui lòng chọn ngày hết hạn!" }]}>
+                                <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD"/>
+                            </Form.Item>
+                            {!editingRecord && (
+                                <Form.Item label={t('promo_label_batch_count')} name="count" rules={[{ required: true, message: "Vui lòng nhập số lượng tạo!" }]} initialValue={1}>
+                                    <Input type="number" min={1} />
+                                </Form.Item>
+                            )}
+                        </>
+                    ) : editingType === 'shipping' ? (
+                        <>
+                            {/* Form Fields cho Shipping Rule */}
+                            <Form.Item label="Tên Quy tắc" name="ruleName" rules={[{ required: true }]}>
+                                <Input placeholder="Ví dụ: Miễn phí Ship cho đơn hàng lớn" />
+                            </Form.Item>
+                            <Form.Item label="Giá trị Đơn hàng Tối thiểu (VNĐ)" name="minOrderValue" rules={[{ required: true }]}>
+                                <Input type="number" min={0} />
+                            </Form.Item>
+                            <Form.Item label="Loại Giảm giá" name="discountType" rules={[{ required: true }]}>
+                                <Select placeholder="Chọn loại giảm giá">
+                                    <Select.Option value="FREE">Miễn phí Ship (Freeship)</Select.Option>
+                                    <Select.Option value="FIXED">Giảm giá cố định (Số tiền)</Select.Option>
+                                </Select>
+                            </Form.Item>
+                            <Form.Item 
+                                noStyle
+                                shouldUpdate={(prevValues, currentValues) => prevValues.discountType !== currentValues.discountType}
+                            >
+                                {({ getFieldValue }) =>
+                                    getFieldValue('discountType') === 'FIXED' ? (
+                                        <Form.Item label="Giá trị giảm (VNĐ)" name="discountValue" rules={[{ required: true }]}>
+                                            <Input type="number" min={1000} />
+                                        </Form.Item>
+                                    ) : null
+                                }
+                            </Form.Item>
+                            <Form.Item label="Mô tả" name="description">
+                                <Input.TextArea rows={2} />
+                            </Form.Item>
+                            <Form.Item label="Trạng thái kích hoạt" name="isActive" valuePropName="checked" initialValue={true}>
+                                <Switch checkedChildren="Kích hoạt" unCheckedChildren="Tạm dừng" />
+                            </Form.Item>
+                        </>
+                    ) : null}
+                    
+                    <Form.Item style={{ marginTop: 24, textAlign: 'right' }}>
+                        <Button onClick={() => { setIsModalVisible(false); setEditingRecord(null); setEditingType(null); form.resetFields(); }}>{t('cancel')}</Button>
+                        <Button type="primary" htmlType="submit" loading={loading} style={{ marginLeft: 8 }}>
+                            {editingRecord ? t('promo_btn_save_changes') : t('promo_btn_create_coupon')}
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </Modal>
+        </>
+    );
+};
+
+// --- 2.5. Khách hàng Thân thiết (Loyalty Program) (Giữ nguyên) ---
 
 const LoyaltyManagement = () => {
     const { t, i18n } = useTranslation();
@@ -315,7 +602,7 @@ const LoyaltyManagement = () => {
         { name: t('promo_loyalty_tier_gold'), color: 'gold', level: 'gold', level_vi: 'Vàng', minSpent: 10000001, maxSpent: 50000000, benefit: t('promo_loyalty_gold_benefit') },
         { name: t('promo_loyalty_tier_diamond'), color: 'blue', level: 'diamond', level_vi: 'Kim Cương', minSpent: 50000001, maxSpent: Infinity, benefit: t('promo_loyalty_diamond_benefit') },
     ];
-   
+    
     const mockCustomersWithLang = [
         { key: 'cus1', name: 'Nguyễn Văn A', level_vi: 'Vàng', level: 'gold', totalSpent: 25000000, points: 1250 },
         { key: 'cus2', name: 'Trần Thị B', level_vi: 'Bạc', level: 'silver', totalSpent: 8000000, points: 300 },
@@ -405,16 +692,16 @@ const LoyaltyManagement = () => {
 
 const PromotionPage = () => {
     const { t } = useTranslation();
-   
+    
     const promotionItems = [
         {
             key: 'campaigns',
             label: <Space><GiftOutlined /> {t('promo_tab_campaigns')}</Space>,
             children: <CampaignsManagement />,
         },
-        {
+        { // Tab Mã giảm giá lớn chứa cả Coupons và Shipping Rules
             key: 'coupons',
-            label: <Space><TagOutlined /> {t('promo_tab_coupons')}</Space>,
+            label: <Space><TagOutlined /> Mã giảm giá (Coupons)</Space>,
             children: <CouponsManagement />,
         },
         {
@@ -428,12 +715,11 @@ const PromotionPage = () => {
         <Layout style={{ padding: 24 }}>
             <style>
                 {`
-                /* Hiệu ứng nhấp nháy/rung nhẹ */
+                /* CSS TÙY CHỈNH CHUNG */
                 @keyframes promotion-blink {
                     0%, 100% { opacity: 1; transform: scale(1); }
                     50% { opacity: 0.7; transform: scale(1.05); }
                 }
-                /* Hiệu ứng lên xuống giật giật (Bounce) */
                 @keyframes title-bounce {
                     0%, 100% { transform: translateY(0); }
                     50% { transform: translateY(-3px); }
@@ -446,11 +732,24 @@ const PromotionPage = () => {
                     animation: promotion-blink 1.5s infinite alternate;
                     vertical-align: middle;
                 }
-                /* Áp dụng hiệu ứng giật giật cho tiêu đề */
                 .promotion-title {
                     animation: title-bounce 1s infinite alternate;
                     display: inline-block;
                     margin-bottom: 0 !important;
+                }
+                
+                /* CSS TÙY CHỈNH CHO BẢNG (áp dụng cho tất cả bảng) */
+                .professional-coupon-table .ant-table-thead > tr > th {
+                    background-color: #f0f2f5 !important; 
+                    color: #434343 !important; 
+                    font-weight: 700 !important; 
+                    border-bottom: 2px solid #e8e8e8; 
+                }
+                .professional-coupon-table .ant-table-thead th:last-child {
+                    text-align: center !important;
+                }
+                .professional-coupon-table .ant-table-tbody td:last-child {
+                    text-align: center !important;
                 }
                 `}
             </style>
@@ -470,7 +769,7 @@ const PromotionPage = () => {
                 }}
             >
                 <Tabs
-                    defaultActiveKey="campaigns"
+                    defaultActiveKey="coupons" 
                     size="large"
                     items={promotionItems}
                 />

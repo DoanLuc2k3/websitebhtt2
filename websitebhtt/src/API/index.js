@@ -118,3 +118,142 @@ const api = {
 };
 
 export default api;
+
+// --- LocalStorage helpers to persist admin changes and merge with remote data ---
+const LOCAL_PRODUCTS_KEY = "local_products";
+const DELETED_REMOTE_IDS_KEY = "deleted_remote_product_ids";
+
+function readLocalProducts() {
+  try {
+    const raw = localStorage.getItem(LOCAL_PRODUCTS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    console.error("Failed to read local products", e);
+    return [];
+  }
+}
+
+function writeLocalProducts(list) {
+  try {
+    localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(list || []));
+  } catch (e) {
+    console.error("Failed to write local products", e);
+  }
+}
+
+function readDeletedRemoteIds() {
+  try {
+    const raw = localStorage.getItem(DELETED_REMOTE_IDS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    console.error("Failed to read deleted remote ids", e);
+    return [];
+  }
+}
+
+function writeDeletedRemoteIds(list) {
+  try {
+    localStorage.setItem(DELETED_REMOTE_IDS_KEY, JSON.stringify(list || []));
+  } catch (e) {
+    console.error("Failed to write deleted remote ids", e);
+  }
+}
+
+export async function getMergedProducts({ category = null } = {}) {
+  // Try to fetch real remote products; fallback to sampleProducts
+  let remote = [];
+  try {
+    const res = await fetch("https://dummyjson.com/products?limit=0");
+    if (res.ok) {
+      const data = await res.json();
+      remote = data.products || [];
+    } else {
+      remote = sampleProducts.slice();
+    }
+  } catch (e) {
+    console.warn("Failed to fetch remote products, using sample: ", e);
+    remote = sampleProducts.slice();
+  }
+
+  // Normalize remote items to the inventory shape (price in VNĐ)
+  const normalizedRemote = remote.map((p) => ({
+    id: p.id,
+    title: p.title,
+    title_en: p.title,
+    price: (p.price || 0) * 23500,
+    discountedPrice: p.discountedPrice ? p.discountedPrice * 23500 : (p.price || 0) * 23500,
+    quantity: 1,
+    total: (p.price || 0) * 23500,
+    thumbnail: p.thumbnail || p.images?.[0] || "",
+    rating: p.rating || 0,
+    stock: p.stock || 0,
+    brand: p.brand || "",
+    category: p.category || "",
+    _isLocal: false,
+  }));
+
+  // Read local products and deleted remote ids
+  const local = readLocalProducts();
+  const deletedRemote = readDeletedRemoteIds();
+
+  // Filter out remote products that admin deleted (soft-delete stored locally)
+  const filteredRemote = normalizedRemote.filter((r) => !deletedRemote.includes(r.id));
+
+  // Optionally filter by category
+  let merged = [...local, ...filteredRemote];
+  if (category) {
+    merged = merged.filter((p) => (p.category || "").toLowerCase() === category.toLowerCase());
+  }
+
+  // Sort: local products first (so admin-added appear on top)
+  merged.sort((a, b) => {
+    if (a._isLocal && !b._isLocal) return -1;
+    if (!a._isLocal && b._isLocal) return 1;
+    return b.id - a.id; // recent first
+  });
+
+  return merged;
+}
+
+export function saveLocalProduct(product) {
+  const list = readLocalProducts();
+  const now = Date.now();
+  const newProduct = { ...product, id: product.id || now, title_en: product.title, _isLocal: true };
+  list.unshift(newProduct);
+  writeLocalProducts(list);
+  return newProduct;
+}
+
+export function updateLocalProduct(product) {
+  const list = readLocalProducts();
+  const idx = list.findIndex((p) => p.id === product.id);
+  if (idx !== -1) {
+    list[idx] = { ...list[idx], ...product, _isLocal: true };
+    writeLocalProducts(list);
+    return list[idx];
+  }
+  // If not local, treat as an override: save as a local copy with same id
+  const copied = { ...product, _isLocal: true };
+  list.unshift(copied);
+  writeLocalProducts(list);
+  return copied;
+}
+
+export function removeLocalProduct(id) {
+  // If product exists in local list -> remove it. Otherwise treat as remote delete (soft-delete)
+  let local = readLocalProducts();
+  const idx = local.findIndex((p) => p.id === id);
+  if (idx !== -1) {
+    local.splice(idx, 1);
+    writeLocalProducts(local);
+    return true;
+  }
+
+  // Soft-delete remote id
+  const deleted = readDeletedRemoteIds();
+  if (!deleted.includes(id)) {
+    deleted.push(id);
+    writeDeletedRemoteIds(deleted);
+  }
+  return true;
+}

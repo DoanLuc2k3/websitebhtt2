@@ -29,39 +29,7 @@ import {
     ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
-
-// --- DỮ LIỆU ĐÃ CẬP NHẬT: Lấy từ API thật ---
-const getInventoryWithLang = async () => {
-    try {
-        const res = await fetch("https://dummyjson.com/products");
-        if (!res.ok) {
-            throw new Error('Failed to fetch products from dummyjson');
-        }
-        const data = await res.json();
-
-        // Chuẩn hóa dữ liệu từ dummyjson để khớp với cấu trúc bạn đang dùng:
-        const products = data.products.map(p => ({
-            id: p.id,
-            title: p.title,
-            title_en: p.title, // Sử dụng title làm title_en cho mục đích hiển thị
-            price: p.price * 23500, // Chuyển USD sang VNĐ giả định (1 USD = 23,500 VNĐ) để có giá lớn
-            discountedPrice: p.discountedPrice ? p.discountedPrice * 23500 : p.price * 23500, 
-            quantity: 1, // Giả định
-            total: p.price * 23500, // Giả định
-            thumbnail: p.thumbnail,
-            rating: p.rating,
-            stock: p.stock,
-            brand: p.brand,
-            category: p.category, 
-        }));
-
-        return { products: products, total: data.total };
-    } catch (error) {
-        console.error("Error fetching products:", error);
-        // Trả về mảng rỗng nếu lỗi để tránh crash
-        return { products: [], total: 0 };
-    }
-};
+import { getMergedProducts, saveLocalProduct, updateLocalProduct, removeLocalProduct } from "../../API";
 
 // Hàm định dạng tiền tệ dựa trên i18n (giữ nguyên)
 const formatInventoryPrice = (value, i18n) => {
@@ -75,6 +43,19 @@ const formatInventoryPrice = (value, i18n) => {
     
     return `${displayValue.toLocaleString(locale, { minimumFractionDigits: 0 })} ${currency}`;
 };
+
+// Local persistence key used for admin-added/overrides (kept in sync with API helpers)
+const LOCAL_PRODUCTS_KEY = "local_products";
+
+function persistLocalProductsFromState(list) {
+    try {
+        // Only persist items marked as local to avoid saving remote data
+        const locals = (list || []).filter((p) => p && p._isLocal);
+        localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(locals));
+    } catch (e) {
+        console.error("Failed to persist local products from state", e);
+    }
+}
 
 function Inventory() {
     const { t, i18n } = useTranslation();
@@ -101,12 +82,17 @@ function Inventory() {
         fetchData();
     }, [i18n.language]);
 
-    const fetchData = () => {
+    const fetchData = async () => {
         setLoading(true);
-        getInventoryWithLang().then((res) => {
-            setDataSource(res.products);
+        try {
+            const merged = await getMergedProducts();
+            setDataSource(merged);
+        } catch (e) {
+            console.error("Error loading merged products", e);
+            setDataSource([]);
+        } finally {
             setLoading(false);
-        });
+        }
     };
 
     // Toolbar handlers
@@ -176,19 +162,26 @@ function Inventory() {
     const handleSave = () => {
         form.validateFields().then((values) => {
             if (editingProduct) {
-                setDataSource((prev) =>
-                    prev.map((item) =>
-                        item.id === editingProduct.id ? { ...item, ...values } : item
-                    )
-                );
+                // update local store (if exists) or create a local override
+                const updated = { ...editingProduct, ...values };
+                updateLocalProduct(updated);
+                const updatedList = dataSource.map((item) => (item.id === updated.id ? { ...item, ...updated } : item));
+                setDataSource(updatedList);
+                // persist local-only items from the new state
+                persistLocalProductsFromState(updatedList);
                 message.success(t("inventory_update_success") || "Cập nhật sản phẩm thành công");
             } else {
                 const newProduct = {
                     ...values,
                     id: Date.now(),
                     title_en: values.title, // giả lập
+                    _isLocal: true,
                 };
-                setDataSource((prev) => [newProduct, ...prev]);
+                saveLocalProduct(newProduct);
+                const newList = [newProduct, ...dataSource];
+                setDataSource(newList);
+                // persist local-only items from the new state
+                persistLocalProductsFromState(newList);
                 message.success(t("inventory_add_success") || "Thêm sản phẩm thành công");
             }
             closeModal();
@@ -197,7 +190,12 @@ function Inventory() {
 
     // Delete
     const handleDelete = (id) => {
-        setDataSource((prev) => prev.filter((item) => item.id !== id));
+        // remove from local storage (or soft-delete remote)
+        removeLocalProduct(id);
+        const newList = dataSource.filter((item) => item.id !== id);
+        setDataSource(newList);
+        // persist local-only items from the new state
+        persistLocalProductsFromState(newList);
         message.success(t("inventory_delete_success") || "Xóa sản phẩm thành công");
     };
 

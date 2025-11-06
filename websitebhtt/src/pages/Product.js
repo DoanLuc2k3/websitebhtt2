@@ -17,7 +17,8 @@ import { ShoppingCartOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { useNavigate } from "react-router-dom"; 
 
 import '../style/Product.css'; 
-import { getProductCategories, getProductsByFullUrl } from "../data/productService"; //
+import { getProductCategories } from "../data/productService"; //
+import { getMergedProducts } from "../API";
 import { useCart } from "../context/CartContext"; //
 
 const { Title } = Typography;
@@ -38,10 +39,9 @@ function Product() {
         setLoading(true);
         setSelectedCategorySlug(null); 
         try {
-            const response = await fetch("https://dummyjson.com/products?limit=0"); 
-            const data = await response.json();
-            setProducts(data.products); 
-            setFilteredProducts(data.products); 
+            const merged = await getMergedProducts();
+            setProducts(merged);
+            setFilteredProducts(merged);
         } catch (err) {
             console.error("Lỗi khi tải tất cả sản phẩm:", err);
             message.error("Không thể tải danh sách sản phẩm.");
@@ -95,8 +95,8 @@ function Product() {
         setFilteredProducts([]); 
 
         try {
-            const data = await getProductsByFullUrl(categoryUrl); //
-            setFilteredProducts(data); 
+            const data = await getMergedProducts({ category: categorySlug });
+            setFilteredProducts(data);
             message.success(`Đã tải ${data.length} sản phẩm từ danh mục ${categorySlug}.`);
         } catch (err) {
             console.error(`Lỗi khi tải sản phẩm của danh mục ${categorySlug}:`, err);

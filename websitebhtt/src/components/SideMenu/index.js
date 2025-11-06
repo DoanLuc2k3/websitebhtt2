@@ -66,7 +66,7 @@ function SideMenu() {
 
                 /* Giữ lại nền xanh đậm cho mục được chọn */
                 .ant-menu-dark .ant-menu-item-selected {
-                    background-color: #1c28acff !important;
+                    background-color: transparent !important;
                     border-radius: 0 !important;
                 }
 
@@ -78,7 +78,7 @@ function SideMenu() {
 
                 /* Hiệu ứng hover */
                 .ant-menu-dark .ant-menu-item:not(.ant-menu-item-selected):hover {
-                    background-color: rgba(255, 255, 255, 0.1) !important;
+                    background: linear-gradient(135deg, #f51010ff 0%, #764ba2 100%) !important;
                 }
                 .ant-menu-dark .ant-menu-item:not(.ant-menu-item-selected):hover .ant-menu-title-content,
                 .ant-menu-dark .ant-menu-item:not(.ant-menu-item-selected):hover .anticon {
@@ -89,6 +89,49 @@ function SideMenu() {
                     position: relative;
                     z-index: 10;
                 }
+
+                /* Reset background when hovering */
+                .ant-menu-dark .ant-menu-item {
+                    background-color: transparent !important;
+                    transition: background 0.3s ease;
+                }
+
+                /* ===== HOVER EFFECT: ICON ZOOM & CENTER & TEXT HIDDEN ===== */
+                .menu-item-wrapper {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    width: 100%;
+                    position: relative;
+                }
+
+                .menu-icon-wrapper {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-width: 24px;
+                    transition: transform 0.3s ease, margin-left 0.3s ease;
+                }
+
+                .menu-text {
+                    flex: 1;
+                    transition: opacity 0.3s ease, max-width 0.3s ease;
+                    white-space: nowrap;
+                    max-width: 100%;
+                }
+
+                .menu-item-wrapper:hover .menu-icon-wrapper {
+                    transform: scale(1.6);
+                    margin-left: calc(50% - 12px);
+                    transition: transform 0.3s ease, margin-left 0.3s ease;
+                }
+
+                .menu-item-wrapper:hover .menu-text {
+                    opacity: 0;
+                    max-width: 0;
+                    transition: opacity 0.3s ease, max-width 0.3s ease;
+                }
+                /* ===== END HOVER EFFECT ===== */
                 `}
             </style>
 
@@ -107,41 +150,90 @@ function SideMenu() {
                 selectedKeys={[selectedKeys]}
                 items={[
                     {
-                        label: t("overview") || "Tổng quan",
-                        icon: <AppstoreOutlined style={{ color: "green" }} />,
+                        label: (
+                            <div className="menu-item-wrapper">
+                                <div className="menu-icon-wrapper">
+                                    <AppstoreOutlined style={{ color: "green" }} />
+                                </div>
+                                <span className="menu-text">{t("overview") || "Tổng quan"}</span>
+                            </div>
+                        ),
+                        icon: null,
                         key: "/admin",
                     },
                     {
-                        label: t("inventory") || "Quản lý kho",
+                        label: (
+                            <div className="menu-item-wrapper">
+                                <div className="menu-icon-wrapper">
+                                    <ShopOutlined style={{ color: "#fa8c16" }} />
+                                </div>
+                                <span className="menu-text">{t("inventory") || "Quản lý kho"}</span>
+                            </div>
+                        ),
+                        icon: null,
                         key: "/admin/inventory",
-                        icon: <ShopOutlined style={{ color: "#fa8c16" }} />,
                     },
                     {
-                        label: t("orders") || "Đơn hàng",
+                        label: (
+                            <div className="menu-item-wrapper">
+                                <div className="menu-icon-wrapper">
+                                    <ShoppingCartOutlined style={{ color: "red" }} />
+                                </div>
+                                <span className="menu-text">{t("orders") || "Đơn hàng"}</span>
+                            </div>
+                        ),
+                        icon: null,
                         key: "/admin/orders",
-                        icon: <ShoppingCartOutlined style={{ color: "red" }} />,
                     },
                     {
-                        label: t("staffs") || "Nhân viên",
+                        label: (
+                            <div className="menu-item-wrapper">
+                                <div className="menu-icon-wrapper">
+                                    <TeamOutlined style={{ color: "Teal" }} />
+                                </div>
+                                <span className="menu-text">{t("staffs") || "Nhân viên"}</span>
+                            </div>
+                        ),
+                        icon: null,
                         key: "/admin/staffs",
-                        icon: <TeamOutlined style={{ color: "Teal" }} />,
                     },
                     {
-                        label: t("customers") || "Khách hàng",
+                        label: (
+                            <div className="menu-item-wrapper">
+                                <div className="menu-icon-wrapper">
+                                    <UserOutlined style={{ color: "#f7bc0cff" }} />
+                                </div>
+                                <span className="menu-text">{t("customers") || "Khách hàng"}</span>
+                            </div>
+                        ),
+                        icon: null,
                         key: "/admin/customers",
-                        icon: <UserOutlined style={{ color: "#f7bc0cff" }} />,
                     },
                     {
-                        label: t("marketing") || "Marketing & Khuyến mãi",
+                        label: (
+                            <div className="menu-item-wrapper">
+                                <div className="menu-icon-wrapper">
+                                    <TagOutlined style={{ color: "Maroon" }} />
+                                </div>
+                                <span className="menu-text">{t("marketing") || "Marketing & Khuyến mãi"}</span>
+                            </div>
+                        ),
+                        icon: null,
                         key: "/admin/promotion",
-                        icon: <TagOutlined style={{ color: "Maroon" }} />,
                     },
-                  {
-    label: t("help") || "Hỗ trợ",
-    key: "/admin/help",
-    icon: <span style={{ fontSize: '18px' }}>🔥</span>, // Thay thế icon cũ bằng emoji
-    style: { marginTop: "auto" },
-},
+                    {
+                        label: (
+                            <div className="menu-item-wrapper">
+                                <div className="menu-icon-wrapper">
+                                    <span style={{ fontSize: '18px' }}>🔥</span>
+                                </div>
+                                <span className="menu-text">{t("help") || "Hỗ trợ"}</span>
+                            </div>
+                        ),
+                        icon: null,
+                        key: "/admin/help",
+                        style: { marginTop: "auto" },
+                    },
                 ]}
             />
         </div>

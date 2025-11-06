@@ -24,10 +24,8 @@ import { useNavigate } from "react-router-dom";
 
 // Đảm bảo các đường dẫn này chính xác
 import "../style/ProductList.css"; 
-import {
-  getProductCategories,
-  getProductsByFullUrl,
-} from "../data/productService"; 
+import { getProductCategories } from "../data/productService"; 
+import { getMergedProducts } from "../API";
 import { useCart } from "../context/CartContext"; 
 
 const { Title } = Typography;
@@ -58,15 +56,14 @@ function Product() {
     setLoading(true);
     setSelectedCategorySlug(null);
     try {
-      const response = await fetch("https://dummyjson.com/products?limit=0");
-      const data = await response.json();
-      setProducts(data.products);
-      setFilteredProducts(data.products); 
+      const merged = await getMergedProducts();
+      setProducts(merged);
+      setFilteredProducts(merged);
 
-      if (data.products && data.products.length > 0) {
-        const max = Math.ceil(Math.max(...data.products.map((p) => p.price)));
+      if (merged && merged.length > 0) {
+        const max = Math.ceil(Math.max(...merged.map((p) => p.price || 0)));
         setMaxPrice(max);
-        setPriceRange([0, max]); 
+        setPriceRange([0, max]);
       } else {
         setMaxPrice(0);
         setPriceRange([0, 0]);
@@ -155,11 +152,9 @@ function Product() {
     setDisplayProducts([]); 
 
     try {
-      const data = await getProductsByFullUrl(categoryUrl); 
-      setFilteredProducts(data); 
-      message.success(
-        `Đã tải ${data.length} sản phẩm từ danh mục ${categorySlug}.`
-      );
+      const data = await getMergedProducts({ category: categorySlug });
+      setFilteredProducts(data);
+      message.success(`Đã tải ${data.length} sản phẩm từ danh mục ${categorySlug}.`);
     } catch (err) {
       console.error(`Lỗi khi tải sản phẩm của danh mục ${categorySlug}:`, err);
       setFilteredProducts([]);

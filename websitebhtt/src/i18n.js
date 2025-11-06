@@ -1,4 +1,3 @@
-// src/i18n.js (Cập nhật hoàn chỉnh)
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from 'i18next-browser-languagedetector';
@@ -23,8 +22,8 @@ const resources = {
       "role": "Chức vụ", "new_comment": "📩 Bình luận mới",
       "order_notification": "🔔 Thông báo đơn hàng", "order_placed": "đã được đặt hàng!",
       "vietnamese_language": "Tiếng Việt", "english_language": "English",
-      "search_results": "kết quả", // 👈 THÊM KEY MỚI
-      "dark_mode_status": "Chế độ {{status}} đã được kích hoạt!", // 👈 THÊM KEY MỚI
+      "search_results": "kết quả",
+      "dark_mode_status": "Chế độ {{status}} đã được kích hoạt!",
       
       // SIDE MENU
       "overview": "Tổng quan", "inventory": "Quản lý kho", "orders": "Đơn hàng",
@@ -149,8 +148,7 @@ const resources = {
       "promo_loyalty_gold_benefit": "1.5x điểm tích lũy, 1 voucher sinh nhật",
       "promo_loyalty_diamond_benefit": "2x điểm tích lũy, Miễn phí vận chuyển,voucher giảm giá 25% ",
 
-
-      // HELP PAGE
+      // HELP PAGE (OLD)
       "help_title": "Trung tâm Hỗ trợ & Chẩn đoán", "help_subtitle": "Kiểm tra tình trạng hệ thống, tìm kiếm tài liệu và gửi yêu cầu hỗ trợ nhanh.",
       "help_card_diagnosis": "Công cụ Chẩn đoán nhanh", "help_text_enter_id": "Nhập ID để kiểm tra trạng thái Order hoặc User:",
       "help_input_placeholder": "Nhập Order ID hoặc User ID", "help_btn_run": "Chạy", "help_msg_enter_id": "Vui lòng nhập ID Đơn hàng hoặc ID Người dùng!",
@@ -174,13 +172,101 @@ const resources = {
       "help_card_contact": "Liên hệ Kỹ thuật", "help_contact_email": "Email Hỗ trợ",
       "help_contact_hotline": "Hotline Khẩn cấp", "help_contact_time": "Thời gian hỗ trợ: Thứ 2 - Thứ 6 (8h - 17h)",
 
+      // HELP PAGE (NEW TICKET SYSTEM)
+      "help_tab_ticket_management": "Quản lý Ticket",
+      "help_tab_knowledge_base": "Cơ sở Tri thức & Phản hồi Nhanh",
+      "help_tab_reports_analytics": "Báo cáo & Phân tích",
+      "help_tab_automation_settings": "Cài đặt Tự động",
+      "help_dashboard_welcome": "Chào mừng {{user}}. Bạn đang có {{count}} Ticket cần xử lý.",
+      "help_kpi_new_mine": "Ticket Mới (Của tôi)",
+      "help_kpi_in_progress_mine": "Đang Xử lý (Của tôi)",
+      "help_kpi_avg_response": "TB Phản hồi (Toàn hệ thống)",
+      "help_kpi_urgent_total": "Khẩn cấp (Tổng)",
+      "help_btn_create_manual": "Tạo Ticket Thủ công",
+      "help_btn_reload_rules": "Tải lại & Áp dụng Rules",
+      "help_search_ticket_placeholder": "Tìm kiếm ID, Tiêu đề, Khách hàng...",
+      "help_col_id": "ID Ticket",
+      "help_col_title": "Tiêu đề",
+      "help_col_status": "Trạng thái",
+      "help_col_priority": "Ưu tiên",
+      "help_col_customer": "Khách hàng",
+      "help_col_assigned": "Người Phụ trách",
+      "help_col_updated": "Cập nhật Cuối",
+      "help_col_actions": "Hành động",
+      "help_action_details": "Chi tiết",
+      "help_action_close": "Đóng",
+      "help_tag_sla_breached": "QUÁ HẠN (SLA)",
+      "help_tag_assigned_mine": "Của tôi",
+      "help_status_new": "Mới",
+      "help_status_in_progress": "Đang Xử lý",
+      "help_status_pending": "Chờ Phản hồi",
+      "help_status_closed": "Đã Đóng",
+      "help_priority_low": "THẤP",
+      "help_priority_medium": "TRUNG BÌNH",
+      "help_priority_high": "CAO",
+      
+      // ✅ NOUVELLES CLÉS POUR MODAL TẠO TICKET
+      "help_modal_create_ticket_title": "Tạo Ticket Mới",
+      "help_modal_create_ticket_ok": "Tạo Ticket",
+      "help_modal_create_ticket_cancel": "Hủy",
+      "help_modal_alert_automation": "Ticket sẽ được tự động áp dụng các quy tắc tự động hóa",
+      "help_form_ticket_title": "Tiêu đề Ticket",
+      "help_form_ticket_title_required": "Vui lòng nhập tiêu đề!",
+      "help_form_ticket_title_min": "Tiêu đề phải có ít nhất 10 ký tự!",
+      "help_form_ticket_title_placeholder": "VD: Khách hàng báo lỗi thanh toán không thành công",
+      "help_form_customer_name": "Tên Khách Hàng",
+      "help_form_customer_required": "Vui lòng nhập tên khách hàng!",
+      "help_form_customer_placeholder": "VD: Nguyễn Văn A",
+      "help_form_priority_label": "Độ Ưu Tiên",
+      "help_form_priority_required": "Vui lòng chọn độ ưu tiên!",
+      "help_form_priority_low": "Thấp",
+      "help_form_priority_medium": "Trung Bình",
+      "help_form_priority_high": "Cao",
+      "help_form_source_label": "Nguồn",
+      "help_form_source_required": "Vui lòng chọn nguồn!",
+      "help_form_source_web": "Form Web",
+      "help_form_source_email": "Email",
+      "help_form_source_phone": "Điện thoại",
+      "help_form_assigned_label": "Gán cho",
+      "help_form_assigned_auto": "Tự động",
+      "help_form_description_label": "Mô tả chi tiết (tùy chọn)",
+      "help_form_description_placeholder": "Mô tả chi tiết về vấn đề của khách hàng...",
+      "help_msg_ticket_created": "✅ Đã tạo ticket {{id}} thành công!",
+      
+      // KB Sub-tab
+      "help_kb_tab_kb": "Bài viết Hướng dẫn (KB)",
+      "help_kb_tab_canned_responses": "⚡ Phản hồi Nhanh (Canned Responses)",
+      "help_kb_btn_create_article": "Tạo Bài viết Mới",
+      "help_kb_btn_create_canned": "Tạo Mẫu Phản hồi",
+      "help_kb_col_title": "Tiêu đề Bài viết",
+      "help_kb_col_category": "Danh mục",
+      "help_kb_col_status": "Trạng thái",
+      "help_kb_col_cr_title": "Tiêu đề Mẫu",
+      "help_kb_col_cr_content": "Nội dung (Preview)",
+                
+      // Reports Tab
+      "help_report_title_trend": "Biểu đồ Xu hướng Ticket (Tuần)",
+      "help_report_title_performance": "Hiệu suất Nhân viên Hỗ trợ",
+      "help_report_col_closed": "Ticket Đã Đóng",
+      "help_report_col_avg_time": "TB Thời gian Giải quyết",
+      "help_report_chart_open": "Ticket Mở",
+      "help_report_chart_closed": "Ticket Đóng",
+      "help_report_chart_y_axis": "Số lượng Ticket",
+      "help_report_chart_x_axis": "Thời gian",
+      
+      // Automation Tab
+      "help_automation_rules_title": "Quy tắc Tự động hóa",
+      "help_automation_col_name": "Tên Quy tắc",
+      "help_automation_col_condition": "Điều kiện (NẾU)",
+      "help_automation_col_action": "Hành động (THÌ)",
+      "help_automation_col_status": "Trạng thái",
+      "help_automation_btn_create_new": "Tạo Quy tắc Mới",
+
       // FOOTER
       "footer_brand_name": "L-M Shop",
       "footer_phone_number": "+123456789",
       "footer_address": "186 Nguyen Huu Tho",
       "footer_system_status": "Hệ thống hoạt động",
-
-
     }
   },
   en: {
@@ -200,8 +286,8 @@ const resources = {
       "role": "Role", "new_comment": "📩 New Comments",
       "order_notification": "🔔 Order Notifications", "order_placed": "has been ordered!",
       "vietnamese_language": "Tiếng Việt", "english_language": "English",
-      "search_results": "results", // 👈 THÊM KEY MỚI
-      "dark_mode_status": "Dark mode {{status}} activated!", // 👈 THÊM KEY MỚI
+      "search_results": "results",
+      "dark_mode_status": "Dark mode {{status}} activated!",
       
       // SIDE MENU
       "overview": "Overview", "inventory": "Inventory Management", "orders": "Orders",
@@ -326,8 +412,9 @@ const resources = {
       "promo_loyalty_gold_benefit": "1.5x points, 1 birthday voucher",
       "promo_loyalty_diamond_benefit": "2x points, Free Shipping, 25% discount voucher product",
 
-      // HELP PAGE
-      "help_title": "Support & Diagnostic Center", "help_subtitle": "Check system status, search documentation, and submit support requests quickly.",
+      // HELP PAGE (OLD)
+      "help_title": "Support & Customer Service Management",
+      "help_subtitle": "Check system status, search documentation, and submit support requests quickly.",
       "help_card_diagnosis": "Quick Diagnosis Tool", "help_text_enter_id": "Enter ID to check Order or User status:",
       "help_input_placeholder": "Enter Order ID or User ID", "help_btn_run": "Run", "help_msg_enter_id": "Please enter Order ID or User ID!",
       "help_msg_diag_running": "Running diagnosis for ID: {{id}}...", "help_msg_diag_complete": "✅ Diagnosis complete. ID {{id}} status: OK.",
@@ -350,13 +437,101 @@ const resources = {
       "help_card_contact": "Technical Contact", "help_contact_email": "Support Email",
       "help_contact_hotline": "Emergency Hotline", "help_contact_time": "Support hours: Mon - Fri (8am - 5pm)",
 
+      // HELP PAGE (NEW TICKET SYSTEM)
+      "help_tab_ticket_management": "Ticket Management",
+      "help_tab_knowledge_base": "Knowledge Base & Quick Replies",
+      "help_tab_reports_analytics": "Reports & Analytics",
+      "help_tab_automation_settings": "Automation Settings",
+      "help_dashboard_welcome": "Welcome {{user}}. You have {{count}} Tickets to handle.",
+      "help_kpi_new_mine": "New Tickets (Mine)",
+      "help_kpi_in_progress_mine": "In Progress (Mine)",
+      "help_kpi_avg_response": "Avg Response Time (System Wide)",
+      "help_kpi_urgent_total": "Urgent (Total)",
+      "help_btn_create_manual": "Create Manual Ticket",
+      "help_btn_reload_rules": "Reload & Apply Rules",
+      "help_search_ticket_placeholder": "Search ID, Title, Customer...",
+      "help_col_id": "Ticket ID",
+      "help_col_title": "Title",
+      "help_col_status": "Status",
+      "help_col_priority": "Priority",
+      "help_col_customer": "Customer",
+      "help_col_assigned": "Assigned Agent",
+      "help_col_updated": "Last Updated",
+      "help_col_actions": "Actions",
+      "help_action_details": "Details",
+      "help_action_close": "Close",
+      "help_tag_sla_breached": "SLA BREACHED",
+      "help_tag_assigned_mine": "Mine",
+      "help_status_new": "New",
+      "help_status_in_progress": "In Progress",
+      "help_status_pending": "Pending Reply",
+      "help_status_closed": "Closed",
+      "help_priority_low": "LOW",
+      "help_priority_medium": "MEDIUM",
+      "help_priority_high": "HIGH",
+      
+      // ✅ NEW KEYS FOR CREATE TICKET MODAL
+      "help_modal_create_ticket_title": "Create New Ticket",
+      "help_modal_create_ticket_ok": "Create Ticket",
+      "help_modal_create_ticket_cancel": "Cancel",
+      "help_modal_alert_automation": "Automation rules will be automatically applied to this ticket",
+      "help_form_ticket_title": "Ticket Title",
+      "help_form_ticket_title_required": "Please enter a title!",
+      "help_form_ticket_title_min": "Title must be at least 10 characters!",
+      "help_form_ticket_title_placeholder": "E.g.: Customer reports payment processing error",
+      "help_form_customer_name": "Customer Name",
+      "help_form_customer_required": "Please enter customer name!",
+      "help_form_customer_placeholder": "E.g.: John Doe",
+      "help_form_priority_label": "Priority Level",
+      "help_form_priority_required": "Please select priority!",
+      "help_form_priority_low": "Low",
+      "help_form_priority_medium": "Medium",
+      "help_form_priority_high": "High",
+      "help_form_source_label": "Source",
+      "help_form_source_required": "Please select source!",
+      "help_form_source_web": "Web Form",
+      "help_form_source_email": "Email",
+      "help_form_source_phone": "Phone",
+      "help_form_assigned_label": "Assign to",
+      "help_form_assigned_auto": "Auto",
+      "help_form_description_label": "Detailed Description (optional)",
+      "help_form_description_placeholder": "Describe the customer's issue in detail...",
+      "help_msg_ticket_created": "✅ Ticket {{id}} created successfully!",
+      
+      // KB Sub-tab
+      "help_kb_tab_kb": "Knowledge Base Articles (KB)",
+      "help_kb_tab_canned_responses": "⚡ Quick Replies (Canned Responses)",
+      "help_kb_btn_create_article": "Create New Article",
+      "help_kb_btn_create_canned": "Create Quick Reply",
+      "help_kb_col_title": "Article Title",
+      "help_kb_col_category": "Category",
+      "help_kb_col_status": "Status",
+      "help_kb_col_cr_title": "Template Title",
+      "help_kb_col_cr_content": "Content (Preview)",
+                
+      // Reports Tab
+      "help_report_title_trend": "Ticket Trend Chart (Weekly)",
+      "help_report_title_performance": "Support Agent Performance",
+      "help_report_col_closed": "Tickets Closed",
+      "help_report_col_avg_time": "Avg Resolution Time",
+      "help_report_chart_open": "Open Tickets",
+      "help_report_chart_closed": "Closed Tickets",
+      "help_report_chart_y_axis": "Number of Tickets",
+      "help_report_chart_x_axis": "Time",
+      
+      // Automation Tab
+      "help_automation_rules_title": "Automation Rules",
+      "help_automation_col_name": "Rule Name",
+      "help_automation_col_condition": "Condition (IF)",
+      "help_automation_col_action": "Action (THEN)",
+      "help_automation_col_status": "Status",
+      "help_automation_btn_create_new": "Create New Rule",
+
       // FOOTER
       "footer_brand_name": "L-M Shop",
       "footer_phone_number": "+123456789",
       "footer_address": "186 Nguyen Huu Tho",
       "footer_system_status": "System Operational",
-
-
     }
   },
   jp: { 
@@ -388,3 +563,4 @@ i18n
   });
 
 export default i18n;
+    

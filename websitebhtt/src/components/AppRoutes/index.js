@@ -15,12 +15,12 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Dashboard />}></Route>
       <Route path="/inventory" element={<Inventory />}></Route>
-      <Route path="/orders" element={<Orders />}></Route>
+      <Route path="/orders" element={<Orders />}></Route> 
       <Route path="/customers" element={<Customers />}></Route>
       <Route path="/help" element={<Help />}></Route>
       <Route path="/staffs" element={<Staffs />}></Route>
       <Route path="/promotion" element={<Promotion />}></Route>
     </Routes>
   );
-}
+} 
 export default AppRoutes;

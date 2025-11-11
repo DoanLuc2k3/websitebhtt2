@@ -1155,7 +1155,7 @@ padding-right: "20px"; */
   color: #000000;
   margin-top: 5px;
 }
-
+/* 
 .chat-float-btn {
   right: 24px;
   bottom: 24px;
@@ -1224,7 +1224,7 @@ padding-right: "20px"; */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
-}
+} */
 
 /* ✅ PAGE CONTENT + RESPONSIVE + DARK MODE */
 .PageContent {

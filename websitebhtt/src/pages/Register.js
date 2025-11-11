@@ -22,7 +22,7 @@ const Register = () => {
     try {
       // Gọi hàm register (lưu vào localStorage)
       const newUserData = await registerUser(username, password);
-      
+
       console.log("User mới đã được lưu vào localStorage:", newUserData);
       message.success("Đăng ký thành công! Đang chuyển đến trang đăng nhập...");
 
@@ -38,30 +38,30 @@ const Register = () => {
   };
 
   const onFinishFailed = (errorInfo) => {
-    console.log("Failed:", errorInfo);
+    console.log("Thất bại:", errorInfo);
   };
 
-  // ... (Toàn bộ phần JSX return của bạn giữ nguyên, không cần thay đổi)
   return (
     <div className="login-page">
       <div className="login">
         <Row className="login-row">
+          {/* --- CỘT BÊN TRÁI (TEXT CHÀO MỪNG) --- */}
           <Col className="login-col-left" span={14}>
             <Space direction="vertical" size="small">
               <Title className="title-left" level={1}>
-                Welcome !!
+                Chào mừng!!
               </Title>
               <Text className="text-left">
-                Please log in to your account to enjoy a more personalized
-                experience, access exclusive deals, track your orders easily,
-                and receive the latest updates tailored just for you.
+                Vui lòng đăng nhập vào tài khoản của bạn để tận hưởng trải nghiệm cá nhân hóa hơn, truy cập các ưu đãi độc quyền, dễ dàng theo dõi đơn hàng và nhận các thông tin cập nhật mới nhất dành riêng cho bạn.
               </Text>
             </Space>
           </Col>
+          
+          {/* --- CỘT BÊN PHẢI (FORM ĐĂNG KÝ) --- */}
           <Col span={10} className="login-col-right">
             <div>
               <Title className="login-title" level={2}>
-                Register
+                Đăng ký
               </Title>
               <Form
                 className="form-login"
@@ -71,42 +71,42 @@ const Register = () => {
                 autoComplete="off"
               >
                 <Form.Item
-                  label="Username"
+                  label="Tên người dùng"
                   name="username"
                   rules={[
-                    { required: true, message: "Please enter your username" },
+                    { required: true, message: "Vui lòng nhập tên người dùng" },
                   ]}
                 >
-                  <Input placeholder="Username" />
+                  <Input placeholder="Tên người dùng" />
                 </Form.Item>
                 <Form.Item
-                  label="Password"
+                  label="Mật khẩu"
                   name="password"
                   rules={[
-                    { required: true, message: "Please enter your password" },
+                    { required: true, message: "Vui lòng nhập mật khẩu" },
                   ]}
                 >
-                  <Input.Password placeholder="Password" />
+                  <Input.Password placeholder="Mật khẩu" />
                 </Form.Item>
                 <Form.Item
-                  label="Confirm Password"
+                  label="Xác nhận Mật khẩu"
                   name="confirmPassword"
                   dependencies={["password"]}
                   rules={[
-                    { required: true, message: "Please confirm your password" },
+                    { required: true, message: "Vui lòng xác nhận mật khẩu" },
                     ({ getFieldValue }) => ({
                       validator(_, value) {
                         if (!value || getFieldValue("password") === value) {
                           return Promise.resolve();
                         }
                         return Promise.reject(
-                          new Error("The two passwords do not match")
+                          new Error("Hai mật khẩu không khớp")
                         );
                       },
                     }),
                   ]}
                 >
-                  <Input.Password placeholder="Confirm Password" />
+                  <Input.Password placeholder="Xác nhận Mật khẩu" />
                 </Form.Item>
                 <Form.Item>
                   <Button
@@ -116,32 +116,32 @@ const Register = () => {
                     loading={loading}
                   >
                     <LoginOutlined />
-                    Register
+                    Đăng ký
                   </Button>
                 </Form.Item>
-                 <Form.Item className="or-login-with-form-item">
-                   <Text className="or-login">Or register with</Text>
-                 </Form.Item>
-                 <Row className="login-with" justify="center" gutter={16}>
-                   <Col>
-                     <Button className="btn-login-google">
-                       <GoogleOutlined />
-                       Google
-                     </Button>
-                   </Col>
-                   <Col>
-                     <Button className="btn-login-facebook">
-                       <FacebookFilled />
-                       Facebook
-                     </Button>
-                   </Col>
-                 </Row>
-                 <Form.Item className="dont-have">
-                   <Text className="dont-have-account">
-                     Already have an account?{" "}
-                     <Link href="/login">Login now</Link>
-                   </Text>
-                 </Form.Item>
+                  <Form.Item className="or-login-with-form-item">
+                     <Text className="or-login">Hoặc đăng ký bằng</Text>
+                  </Form.Item>
+                  <Row className="login-with" justify="center" gutter={16}>
+                     <Col>
+                        <Button className="btn-login-google">
+                           <GoogleOutlined />
+                           Google
+                        </Button>
+                     </Col>
+                     <Col>
+                        <Button className="btn-login-facebook">
+                           <FacebookFilled />
+                           Facebook
+                        </Button>
+                     </Col>
+                  </Row>
+                  <Form.Item className="dont-have">
+                     <Text className="dont-have-account">
+                        Đã có tài khoản?{" "}
+                        <Link href="/login">Đăng nhập ngay</Link>
+                     </Text>
+                  </Form.Item>
               </Form>
             </div>
           </Col>

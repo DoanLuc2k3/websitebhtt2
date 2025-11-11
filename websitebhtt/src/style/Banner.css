@@ -1,0 +1,26 @@
+/* src/style/Banner.css */
+
+/* --- 1. Style cho Desktop (Mặc định) --- */
+/* Đây là các style cũ của bạn */
+.banner-slide-img {
+  width: 100%;
+  height: 600px; /* Chiều cao cho desktop */
+  object-fit: cover;
+  transform: translateY(-45px); /* Vị trí cho desktop */
+}
+
+/* --- 2. Style cho Mobile (Responsive) --- */
+/* Sử dụng breakpoint 767px (giống như Header/Footer)
+  Khi màn hình nhỏ hơn 767px, các style này sẽ được áp dụng.
+*/
+@media (max-width: 767px) {
+  .banner-slide-img {
+    /* Giảm chiều cao banner cho phù hợp với di động */
+    height: 300px; 
+    /* (Bạn có thể đổi thành 250px, 350px, ... tùy theo ý thích) */
+
+    /* (Tùy chọn) Giảm bớt hoặc bỏ transform nếu cần */
+    transform: translateY(-30px); 
+    /* (Hoặc 'transform: none;' nếu bạn muốn bỏ hẳn) */
+  }
+}

@@ -3,24 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { 
   Tabs, Layout, Typography, Table, Tag, Space, Card, Row, Col, Input, 
   Button, Modal, Form, message, Switch, Alert, Select,
-  List, // Giữ lại từ phần import bị trùng lặp
-  Divider, // Giữ lại từ phần import bị trùng lặp
-  Timeline, // Giữ lại từ phần import bị trùng lặp
+
 } from 'antd';
 import { 
   ReloadOutlined, PlusOutlined, ClockCircleOutlined, SolutionOutlined, 
   AlertOutlined, EditOutlined, BookOutlined, SettingOutlined, UserOutlined,
   DeleteOutlined, SaveOutlined,
-  ApiOutlined, // Giữ lại từ icons bị trùng lặp
-  DatabaseOutlined, // Giữ lại từ icons bị trùng lặp
-  CloudOutlined, // Giữ lại từ icons bị trùng lặp
-  InfoCircleOutlined, // Giữ lại từ icons bị trùng lặp
-  SyncOutlined, // Giữ lại từ icons bị trùng lặp
-  QuestionCircleOutlined, // Giữ lại từ icons bị trùng lặp
-  MessageOutlined, // Giữ lại từ icons bị trùng lặp
-  PhoneOutlined, // Giữ lại từ icons bị trùng lặp
-  SearchOutlined, // Giữ lại từ icons bị trùng lặp
-  ToolOutlined, // Giữ lại từ icons bị trùng lặp
+
 } from '@ant-design/icons';
 import { Line } from 'react-chartjs-2';
 import {
@@ -32,9 +21,9 @@ import {
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ChartTitle, ChartTooltip, Legend);
 
 // Destructuring Ant Design Components (Đảm bảo không bị trùng lặp)
-const { Title, Paragraph, Text } = Typography;
-const { TextArea, Search } = Input;
-const { Option } = Select;
+const { Title,  Text } = Typography;
+const {  Search } = Input;
+
 const { Content } = Layout;
 
 // Style chung

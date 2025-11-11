@@ -3,7 +3,6 @@ import "../style/AppFooter.css";
 import footerLogo from "../assets/images/logo2.jpg";
 
 import redbullLogo from "../assets/images/redbull.png";
-
 import cr7Logo from "../assets/images/cr7logo.png";
 import vietnamLogo from "../assets/images/vietnamlogo.png";
 import idealLogo from "../assets/images/ideal.png";
@@ -21,12 +20,23 @@ import {
   TwitterSquareFilled,
   CloseCircleFilled,
 } from "@ant-design/icons";
+
 const { Text } = Typography;
+
 const AppFooter = () => {
   return (
     <div className="footer">
-      <Row gutter={16} className="footer-row">
-        <Col className="footer-logo" span={8}>
+      {/* Sử dụng gutter responsive: 
+        - [16, 32] có nghĩa là 16px khoảng cách ngang (giữa các Col)
+        - và 32px khoảng cách dọc (khi các Col rớt hàng)
+      */}
+      <Row gutter={[16, 32]} className="footer-row">
+        {/* Sử dụng props responsive của Col:
+          - xs={24}: Trên màn hình siêu nhỏ (mobile), cột này chiếm 24/24 (100%).
+          - md={24}: Trên màn hình vừa (tablet), cột này vẫn chiếm 100%.
+          - lg={8}: Trên màn hình lớn (desktop), cột này chiếm 8/24 (33.3%).
+        */}
+        <Col className="footer-logo" xs={24} md={24} lg={8}>
           <img src={footerLogo} alt="" />
           <div className="subscribe-input">
             <Input
@@ -41,7 +51,12 @@ const AppFooter = () => {
             @Gaith 2025 All Right reserved
           </Text>
         </Col>
-        <Col className="quick-link" span={3}>
+
+        {/* - xs={24}: Chiếm 100% trên mobile (xếp dọc).
+          - md={8}: Chiếm 8/24 trên tablet (3 cột link sẽ nằm cùng hàng).
+          - lg={3}: Chiếm 3/24 trên desktop.
+        */}
+        <Col className="quick-link" xs={24} md={8} lg={3}>
           <Text strong className="quick-link">
             Quick Links
           </Text>
@@ -58,7 +73,9 @@ const AppFooter = () => {
           <br />
           <Text className="quick-link-content">Contact Us</Text>
         </Col>
-        <Col className="legal-link" span={3}>
+        
+        {/* Tương tự cột Quick Links */}
+        <Col className="legal-link" xs={24} md={8} lg={3}>
           <Text strong className="legal-link">
             Legal Link
           </Text>
@@ -82,7 +99,9 @@ const AppFooter = () => {
             <CloseCircleFilled className="icon xicon" />
           </div>
         </Col>
-        <Col className="contact-information" span={3}>
+
+        {/* Tương tự cột Quick Links */}
+        <Col className="contact-information" xs={24} md={8} lg={3}>
           <Text strong className="contact-information">
             Contact Information
           </Text>
@@ -93,7 +112,12 @@ const AppFooter = () => {
           <br />
           <Text className="contact-information-content">Address</Text>
         </Col>
-        <Col className="connect-payment" span={7}>
+        
+        {/* - xs={24}: Chiếm 100% trên mobile.
+          - md={24}: Chiếm 100% trên tablet.
+          - lg={7}: Chiếm 7/24 trên desktop.
+        */}
+        <Col className="connect-payment" xs={24} md={24} lg={7}>
           <div className="logo-connect">
             <img className="logo-connect-content" src={vietnamLogo} alt="" />
             <img className="logo-connect-content" src={redbullLogo} alt="" />
@@ -101,38 +125,38 @@ const AppFooter = () => {
           </div>
           <div className="card-logo">
             <div className="card-logo-item1">
-                <div className="card-ideal">
-                    <img className="" src={idealLogo} alt="" />
-                </div>
-                <div className="card-ideal">
-                    <img className="" src={visaLogo} alt="" />
-                </div>
-                <div className="card-ideal">
-                    <img className="" src={MastercardLogo} alt="" />
-                </div>
-                <div className="card-ideal">
-                    <img className="" src={giropay} alt="" />
-                </div>
-                <div className="card-ideal">
-                    <img className="" src={GooglePay} alt="" />
-                </div>
+              <div className="card-ideal">
+                <img className="" src={idealLogo} alt="" />
+              </div>
+              <div className="card-ideal">
+                <img className="" src={visaLogo} alt="" />
+              </div>
+              <div className="card-ideal">
+                <img className="" src={MastercardLogo} alt="" />
+              </div>
+              <div className="card-ideal">
+                <img className="" src={giropay} alt="" />
+              </div>
+              <div className="card-ideal">
+                <img className="" src={GooglePay} alt="" />
+              </div>
             </div>
             <div className="card-logo-item2">
-                <div className="card-ideal">
-                    <img className="" src={PayPal} alt="" />
-                </div>
-                <div className="card-ideal">
-                    <img className="" src={KCB} alt="" />
-                </div>
-                <div className="card-ideal">
-                    <img className="" src={CBC} alt="" />
-                </div>
-                <div className="card-ideal">
-                    <img className="" src={KLARNA} alt="" />
-                </div>
-                <div className="card-ideal">
-                    <img className="" src={APAY} alt="" />
-                </div>
+              <div className="card-ideal">
+                <img className="" src={PayPal} alt="" />
+              </div>
+              <div className="card-ideal">
+                <img className="" src={KCB} alt="" />
+              </div>
+              <div className="card-ideal">
+                <img className="" src={CBC} alt="" />
+              </div>
+              <div className="card-ideal">
+                <img className="" src={KLARNA} alt="" />
+              </div>
+              <div className="card-ideal">
+                <img className="" src={APAY} alt="" />
+              </div>
             </div>
           </div>
         </Col>

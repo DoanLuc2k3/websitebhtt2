@@ -1,130 +1,272 @@
+/* --- BIẾN CSS --- */
+:root {
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0a0;
+  --text-hover: #ffffff;
+  --border-color: #383737;
+  --button-bg: #383737;
+  --button-hover: #555;
+  --facebook-color: #3b5998;
+  --twitter-color: #1da1f2;
+  --x-color: #e0245e;
+}
+
+/* --- TỔNG THỂ FOOTER --- */
 .footer{
   background-color: black;
-  padding: 20px;
-  height: 450px;
+  padding: 4rem 2rem;
+  min-height: 450px;
   margin-top: 50px;
+  overflow: hidden;
+  animation: fadeIn 1s ease-out;
 }
+
 .footer-logo img{
   width: 100px;
   height: auto;
   margin-top: 30px;
-  
 }
+
+/* --- Ô SUBSCRIBE --- */
 .subscribe-input{
   display: flex;
   margin-top: 100px;
   gap: 12px;
-
 }
 .footer-input{
   border-radius: 50px;
   height: 45px;
   width: 200px;
+  background: var(--border-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
 }
+.footer-input:focus,
+.footer-input:hover {
+  background: #444;
+  border-color: var(--text-secondary);
+  box-shadow: 0 0 10px rgba(160, 160, 160, 0.2);
+}
+.footer-input::placeholder {
+  color: var(--text-secondary);
+}
+
 .footer-button{
   border-radius: 50px;
-background-color: #383737;
-height: 45px;
+  background-color: var(--button-bg);
+  height: 45px;
+  color: var(--text-primary);
+  font-weight: 600;
+  border: none;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
+.footer-button:hover {
+  background-color: var(--button-hover) !important;
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(200, 200, 200, 0.1);
+}
+
 .footer-text-gaith{
-  color: #555;
+  color: var(--text-secondary);
   margin-top: 120px ;
   display: flex;
 }
-.quick-link{
-  color: white;
+
+/* --- CÁC LINKS --- */
+.quick-link,
+.legal-link,
+.contact-information {
+  color: var(--text-primary);
   margin-top: 30px;
   font-size: 15px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
-.quick-link-content{
-  color: #555;
+
+.quick-link-content,
+.legal-link-content,
+.contact-information-content {
+  color: var(--text-secondary);
   margin-top: 3px;
-  display: flex;
+  display: block;
+  cursor: pointer;
+  transition: all 0.3s ease-out;
 }
-.legal-link{
-  color: white;
-  margin-top: 30px;
-  font-size: 15px;
-  
+
+.quick-link-content:hover,
+.legal-link-content:hover,
+.contact-information-content:hover {
+  color: var(--text-hover);
+  transform: translateX(8px);
 }
-.legal-link-content{
-  color: #555;
-  margin-top: 3px;
-  display: flex;
-}
-.contact-information{
-  color: white;
-  margin-top: 30px;
-  font-size: 15px;
- 
-}
-.contact-information-content{
-  color: #555;
-  margin-top: 3px;
-  display: flex;
-}
+
+/* --- ICON MẠNG XÃ HỘI --- */
 .social-icons {
   display: flex;
-  gap: 20px; /* khoảng cách giữa các icon */
+  gap: 20px;
   align-items: center;
+  margin-top: 1.5rem;
 }
 
 .social-icons .icon {
-  font-size: 32px; /* phóng to icon */
+  font-size: 32px;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* hover phóng to nhẹ */
 .social-icons .icon:hover {
-  transform: scale(1.2);
+  transform: scale(1.2) translateY(-5px);
 }
-
-/* màu riêng cho từng icon */
 .social-icons .facebook {
-  color: #3b5998;
+  color: var(--facebook-color);
 }
-
+.social-icons .facebook:hover {
+  box-shadow: 0 0 15px var(--facebook-color);
+  border-radius: 50%;
+}
 .social-icons .twitter {
-  color: #1da1f2;
+  color: var(--twitter-color);
+}
+.social-icons .twitter:hover {
+  box-shadow: 0 0 15px var(--twitter-color);
+  border-radius: 50%;
+}
+.social-icons .xicon {
+  color: var(--x-color);
+}
+.social-icons .xicon:hover {
+  box-shadow: 0 0 15px var(--x-color);
+  border-radius: 50%;
 }
 
-.social-icons .xicon {
-  color: #e0245e; /* màu giống X hiện tại */
-}
+/* --- LOGO ĐỐI TÁC & THANH TOÁN --- */
 .logo-connect{
   justify-content: flex-end;
   display: flex;
   gap: 10px;
   margin-top: 30px;
+  flex-wrap: wrap;
 }
 .logo-connect-content{
   height: 50px;
   width: auto;
   display: flex;
- 
+  filter: grayscale(100%) opacity(0.7);
+  transition: all 0.3s ease;
+}
+.logo-connect-content:hover {
+  filter: grayscale(0%) opacity(1);
+  transform: scale(1.1);
+}
 
-}
-.card-logo-item1{
+.card-logo-item1,
+.card-logo-item2 {
   gap: 10px;
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+.card-logo-item1 {
   margin-top: 70px;
-  display: flex;
-  justify-content: flex-end;
 }
-.card-logo-item2{
-    gap: 10px;
+.card-logo-item2 {
   margin-top: 10px;
-  display: flex;
-  justify-content: flex-end;
 }
+
 .card-ideal{
-background-color: white;
-border-radius: 10px;
-width: 60px;
-height: 40px;
-}
-.card-ideal img{
+  background-color: white;
+  border-radius: 10px;
   width: 60px;
-height: 40px;
-border-radius: 10px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+.card-ideal:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.card-ideal img{
+  width: 90%;
+  height: 90%;
+  object-fit: contain;
+  border-radius: 5px;
+}
+
+
+/* --- ANIMATIONS --- */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* * ===================================================================
+ * RESPONSIVE
+ * ===================================================================
+ */
+
+/* --- TABLET (Máy tính bảng) --- */
+@media (max-width: 992px) {
+  .footer {
+    padding: 3rem 1.5rem;
+    height: auto; /* Bỏ chiều cao cố định */
+  }
+
+  /* Không cần "margin-bottom" cho .ant-col ở đây
+    vì gutter={[16, 32]} trong file JS đã tự động xử lý.
+  */
+
+  .subscribe-input {
+    margin-top: 2rem;
+  }
+  .footer-text-gaith {
+    margin-top: 2rem;
+  }
+  .card-logo-item1 {
+    margin-top: 2rem;
+  }
+  /* Căn lề trái cho các logo trên tablet */
+  .logo-connect,
+  .card-logo-item1,
+  .card-logo-item2 {
+    justify-content: flex-start;
+  }
+}
+
+/* --- MOBILE (Điện thoại) --- */
+@media (max-width: 768px) {
+  /* Căn giữa mọi thứ trên mobile */
+  .footer-logo,
+  .quick-link,
+  .legal-link,
+  .contact-information,
+  .footer-text-gaith {
+    text-align: center;
+  }
+  .subscribe-input {
+    justify-content: center;
+  }
+  .social-icons {
+    justify-content: center;
+  }
+  .logo-connect,
+  .card-logo-item1,
+  .card-logo-item2 {
+    justify-content: center;
+  }
+  
+  /* Tắt hiệu ứng trượt ngang trên mobile (vì không cần thiết) */
+  .quick-link-content:hover,
+  .legal-link-content:hover,
+  .contact-information-content:hover {
+    transform: none;
+  }
 }

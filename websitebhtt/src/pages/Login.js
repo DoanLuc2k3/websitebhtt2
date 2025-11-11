@@ -4,22 +4,22 @@
 
 import React, { useState } from "react";
 import {
-  Typography, Form, Input, Button, Row, Col,  message,
+  Typography, Form, Input, Button, Row, Col, message,
 } from "antd";
 import {
   GoogleOutlined, LoginOutlined, FacebookFilled,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../data/authService";
-import "../style/Login.css"; 
-import { useAuth } from "../context/AuthContext"; 
+import "../style/Login.css";
+import { useAuth } from "../context/AuthContext";
 
 const { Title, Text, Link } = Typography;
 
 const Login = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth(); 
+  const { login } = useAuth();
 
   const onFinish = async (values) => {
     const { username, password } = values;
@@ -28,10 +28,10 @@ const Login = () => {
     try {
       const userData = await loginUser(username, password);
       message.success(`Chào mừng trở lại, ${userData.firstName || userData.username}!`);
-      
+
       // === THAY ĐỔI QUAN TRỌNG Ở ĐÂY ===
       // Gửi cả token và userData vào hàm login của Context
-      login(userData.token, userData); 
+      login(userData.token, userData);
       // ===============================
 
       if (userData.role === 'admin') {
@@ -48,16 +48,16 @@ const Login = () => {
   };
 
   return (
-    <div className="login"> 
+    <div className="login">
       <Row className="login-row">
         {/* --- CỘT BÊN TRÁI (HÌNH ẢNH VÀ TEXT) --- */}
         <Col span={15} className="login-col-left">
           <div>
             <Title level={1} className="title-left">
-              Welcome to L-M Fashion
+              Chào mừng đến với L-M Fashion
             </Title>
             <Text className="text-left">
-              Please login to access your account and start shopping.
+              Vui lòng đăng nhập để truy cập tài khoản của bạn và bắt đầu mua sắm.
             </Text>
           </div>
         </Col>
@@ -66,7 +66,7 @@ const Login = () => {
         <Col span={9} className="login-col-right">
           <div className="login-form-container">
             <Title level={2} className="login-title">
-              Login
+              Đăng nhập
             </Title>
             <Form
               name="login"
@@ -76,26 +76,26 @@ const Login = () => {
             >
               <Form.Item
                 name="username"
-                label="Username"
+                label="Tên người dùng"
                 rules={[
-                  { required: true, message: "Please input your username!" },
+                  { required: true, message: "Vui lòng nhập tên người dùng!" },
                 ]}
               >
-                <Input placeholder="Enter your username" />
+                <Input placeholder="Nhập tên người dùng của bạn" className="custom-input" />
               </Form.Item>
               <Form.Item
                 name="password"
-                label="Password"
+                label="Mật khẩu"
                 rules={[
-                  { required: true, message: "Please input your password!" },
+                  { required: true, message: "Vui lòng nhập mật khẩu!" },
                 ]}
               >
-                <Input.Password placeholder="Enter your password" />
+                <Input.Password placeholder="Nhập mật khẩu của bạn" />
               </Form.Item>
-              
+
               <Form.Item className="form-item-no-style" style={{ marginBottom: '24px' }}>
                 <Link href="/forgot-password" style={{ float: "right" }}>
-                  Forgot password?
+                  Quên mật khẩu?
                 </Link>
               </Form.Item>
 
@@ -107,12 +107,12 @@ const Login = () => {
                   loading={loading}
                 >
                   <LoginOutlined />
-                  Login
+                  Đăng nhập
                 </Button>
               </Form.Item>
-              
+
               <Form.Item className="or-login-with-form-item form-item-no-style" style={{ marginTop: '10px' }}>
-                <Text className="or-login">Or login with</Text>
+                <Text className="or-login">Hoặc đăng nhập bằng</Text>
               </Form.Item>
 
               <Row className="login-with" justify="center" gutter={16}>
@@ -132,8 +132,8 @@ const Login = () => {
 
               <Form.Item className="dont-have form-item-no-style" style={{ marginTop: '20px' }}>
                 <Text className="dont-have-account">
-                  Don’t have an account?{" "}
-                  <Link href="/register">Register now</Link>
+                  Bạn chưa có tài khoản?{" "}
+                  <Link href="/register">Đăng ký ngay</Link>
                 </Text>
               </Form.Item>
             </Form>

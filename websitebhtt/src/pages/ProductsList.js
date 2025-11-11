@@ -421,21 +421,21 @@ function Product() {
           </div>
 
           <Row gutter={10} justify="center" className="flash-sale-row">
-            <Col flex="1" span={8}>
+            <Col xs={24} md={8}>
               <img
                 src="https://cdn.hstatic.net/files/1000003969/file/img_2197_c22e8ec7f8624198b610bfdd4c36654c.jpeg"
                 alt="Deal Sốc 1"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
             </Col>
-            <Col flex="1" span={8}>
+            <Col xs={24} md={8}>
               <img
                 src="https://cdn.hstatic.net/files/1000003969/file/img_2198_9bed97b1dffd4949b7c6803fcf6e5e99.jpeg"
                 alt="Deal Sốc 2"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
             </Col>
-            <Col flex="1" span={8}>
+            <Col xs={24} md={8}>
               <img
                 src="https://cdn.hstatic.net/files/1000003969/file/img_2199_aeb9ad30d0cf4d2c8cf765cca6798035.jpeg"
                 alt="Deal Sốc 3"

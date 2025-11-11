@@ -49,5 +49,31 @@ export const getProductsByFullUrl = async (url) => {
         throw error;
     }
 };
+/**
+ * TÌM KIẾM SẢN PHẨM (CHO GỢI Ý).
+ * Lấy danh sách sản phẩm dựa trên từ khóa tìm kiếm.
+ * @param {string} query - Từ khóa tìm kiếm.
+ * @returns {Promise<object[]>} Một Promise resolve với mảng sản phẩm.
+ */
+export const searchProducts = async (query) => {
+  if (!query) {
+    return []; // Trả về mảng rỗng nếu không có query
+  }
+  try {
+    // Thêm limit=5 để chỉ lấy 5 gợi ý hàng đầu
+    const response = await fetch(`${API_BASE_URL}/products/search?q=${encodeURIComponent(query)}&limit=5`);
+
+    if (!response.ok) {
+      throw new Error(`Lỗi HTTP! Trạng thái: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.products; // Trả về mảng sản phẩm
+
+  } catch (error) {
+    console.error("Không thể fetch gợi ý sản phẩm:", error);
+    throw error;
+  }
+};
 // Bạn có thể xóa hàm getProductsByCategory trước đó nếu không dùng.
 // export const getProductsByCategory = async (categorySlug) => { ... }

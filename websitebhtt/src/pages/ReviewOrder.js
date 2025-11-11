@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Typography,
   Row,
@@ -14,7 +14,10 @@ import {
   Input,
   DatePicker,
   Select,
+  Tag,
+  message,
 } from "antd";
+import { getStoredOrders } from "../API";
 import "../style/ReviewOrder.css";
 import {
   EnvironmentFilled,
@@ -29,17 +32,33 @@ import {
   EditOutlined,
 } from "@ant-design/icons";
 import { useLocation, useNavigate } from "react-router-dom";
-import dayjs from "dayjs"; // <-- Nhớ cài đặt dayjs
+import dayjs from "dayjs";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
+
+// ✅ Helper function: Lấy thông tin user hiện tại từ localStorage
+const getCurrentUser = () => {
+  try {
+    const user = localStorage.getItem('currentUser');
+    if (!user) {
+      console.log('⚠️ currentUser not found in localStorage');
+      return null;
+    }
+    const parsedUser = JSON.parse(user);
+    console.log('✅ Current User:', parsedUser);
+    return parsedUser;
+  } catch (e) {
+    console.error('Failed to parse currentUser from localStorage', e);
+    return null;
+  }
+};
 
 const ReviewOrder = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Nhận dữ liệu BAN ĐẦU từ location.state
-  const initialDelivery = location.state?.delivery || {
+  const defaultDelivery = useMemo(() => ({
     name: "N/A",
     phone: "N/A",
     email: "N/A",
@@ -50,16 +69,36 @@ const ReviewOrder = () => {
     date: null,
     note: "N/A",
     payment: "Not specified",
-  };
-  const { items, totals } = location.state || {
-    items: [],
-    totals: { subtotal: 0, discount: 0, shipping: 0, total: 0 },
-  };
+  }), []);
+
+  const initialDelivery = location.state?.delivery || defaultDelivery;
+  const initialItems = (location.state && location.state.items) || [];
+  const initialTotals = (location.state && location.state.totals) || { subtotal: 0, discount: 0, shipping: 0, total: 0 };
 
   // State cho Delivery
   const [currentDelivery, setCurrentDelivery] = useState(initialDelivery);
   const [isShipToModalVisible, setIsShipToModalVisible] = useState(false);
   const [shipToForm] = Form.useForm();
+
+  // Items/totals
+  const [itemsState, setItemsState] = useState(initialItems);
+  const [totalsState, setTotalsState] = useState(initialTotals);
+
+  // Stored orders list
+  const [storedOrders, setStoredOrders] = useState([]);
+  const [selectedStoredKey, setSelectedStoredKey] = useState(null);
+  const [orderStatus, setOrderStatus] = useState(location.state?.status || null);
+
+  // ✅ State cho current user
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+
+  // ✅ Load currentUser khi component mount
+  useEffect(() => {
+    const user = getCurrentUser();
+    console.log('Setting current user on mount:', user);
+    setCurrentUser(user);
+  }, []);
 
   const showShipToModal = () => {
     shipToForm.setFieldsValue({
@@ -81,6 +120,7 @@ const ReviewOrder = () => {
         ...updatedDelivery,
       }));
       setIsShipToModalVisible(false);
+      message.success('Cập nhật thông tin giao hàng thành công');
     } catch (errorInfo) {
       console.log("Failed:", errorInfo);
     }
@@ -98,6 +138,84 @@ const ReviewOrder = () => {
     setPaymentMethod(initialDelivery.payment);
   }, [initialDelivery.payment]);
 
+  // ✅ LOAD STORED ORDERS VÀ LỌC THEO USER HIỆN TẠI
+  useEffect(() => {
+    const load = () => {
+      try {
+        setIsLoadingOrders(true);
+
+        const user = getCurrentUser();
+        const allOrders = getStoredOrders() || [];
+
+        console.log('📦 All stored orders:', allOrders);
+        console.log('👤 Current user for filtering:', user);
+
+        let userOrders = [];
+
+        if (user) {
+          // ✅ LỌC ĐƠN HÀNG THEO USER
+          userOrders = allOrders.filter((order) => {
+            const orderUserId = order.userId || order.customer?.userId;
+            const orderCustomerEmail = order.customer?.email;
+            const userEmail = user.email;
+            const userId = user.id;
+
+            // So sánh ID trước, nếu không có thì so sánh email
+            const isMatch = orderUserId === userId || orderCustomerEmail === userEmail;
+
+            console.log(`Checking order:`, {
+              orderId: order.id,
+              orderUserId,
+              orderCustomerEmail,
+              userId,
+              userEmail,
+              isMatch
+            });
+
+            return isMatch;
+          });
+
+          console.log('✅ Filtered user orders:', userOrders);
+        } else {
+          console.log('❌ No user found - not filtering orders');
+          userOrders = [];
+        }
+
+        setStoredOrders(userOrders);
+
+        // Auto-select first order nếu có
+        if (!location.state && userOrders && userOrders.length > 0) {
+          const first = userOrders[0];
+          setSelectedStoredKey(first.key || first.id);
+          setItemsState(first.items || []);
+          setTotalsState(first.totals || { subtotal: 0, discount: 0, shipping: 0, total: 0 });
+          setCurrentDelivery(() => first.customer || initialDelivery);
+          setOrderStatus(first.status || null);
+        }
+
+      } catch (e) {
+        console.error('Failed to load stored orders', e);
+        message.error('Lỗi khi tải đơn hàng');
+      } finally {
+        setIsLoadingOrders(false);
+      }
+    };
+
+    // Load khi currentUser thay đổi
+    if (currentUser) {
+      load();
+    }
+
+    const handler = () => load();
+    window.addEventListener('orders_updated', handler);
+    window.addEventListener('storage', handler);
+
+    return () => {
+      window.removeEventListener('orders_updated', handler);
+      window.removeEventListener('storage', handler);
+    };
+  }, [location.state, initialDelivery, currentUser]);
+
   const showPaymentModal = () => {
     setIsPaymentModalVisible(true);
   };
@@ -109,13 +227,14 @@ const ReviewOrder = () => {
       payment: newMethod,
     }));
     setIsPaymentModalVisible(false);
+    message.success('Cập nhật phương thức thanh toán thành công');
   };
 
   const handlePaymentCancel = () => {
     setIsPaymentModalVisible(false);
   };
 
-  // Cấu hình cột bảng (giữ nguyên)
+  // Cấu hình cột bảng
   const columns = [
     {
       title: "Product",
@@ -157,17 +276,16 @@ const ReviewOrder = () => {
     },
   ];
 
-  const processedData = items.map((item) => ({
-    key: item.product.id,
-    image: item.product.thumbnail,
-    name: item.product.title,
-    price: item.product.price,
-    stock: item.product.stock,
-    qty: item.quantity,
-    subtotal: (item.product.price * item.quantity).toFixed(2),
+  const processedData = (itemsState || []).map((item) => ({
+    key: item.product?.id || item.id || Math.random(),
+    image: item.product?.thumbnail || item.thumbnail || (item.product && item.product.images && item.product.images[0]) || '',
+    name: item.product?.title || item.title || item.name || 'Product',
+    price: item.product?.price || item.price || 0,
+    stock: item.product?.stock || item.stock || 0,
+    qty: item.quantity || item.qty || 1,
+    subtotal: ((item.product?.price || item.price || 0) * (item.quantity || item.qty || 1)).toFixed(2),
   }));
 
-  // Helper format ngày (giữ nguyên)
   const formattedDate = currentDelivery.date
     ? new Date(currentDelivery.date).toLocaleDateString("vi-VN", {
         year: "numeric",
@@ -183,14 +301,85 @@ const ReviewOrder = () => {
         your order.
       </Text>
       <br />
+
+      {/* ✅ HIỂN THỊ THÔNG TIN USER HIỆN TẠI */}
+      {currentUser ? (
+        <div style={{ marginTop: 12, marginBottom: 12, padding: "12px 16px", backgroundColor: "#e6f7ff", borderRadius: "6px", borderLeft: "4px solid #1890ff" }}>
+          <Text>
+            <UserOutlined style={{ marginRight: 8, color: "#1890ff", fontSize: 16 }} />
+            <span style={{ fontSize: 14 }}>Đơn hàng của: </span>
+            <Text strong style={{ color: "#1890ff", fontSize: 15 }}>{currentUser.name}</Text>
+            <span style={{ marginLeft: "12px", color: "#666", fontSize: 12 }}>({currentUser.email})</span>
+          </Text>
+        </div>
+      ) : (
+        <div style={{ marginTop: 12, marginBottom: 12, padding: "12px 16px", backgroundColor: "#fff7e6", borderRadius: "6px", borderLeft: "4px solid #faad14" }}>
+          <Text type="warning" style={{ fontSize: 14 }}>
+            ⚠️ Vui lòng <a href="/login" style={{ color: '#faad14', fontWeight: 'bold' }}>đăng nhập</a> để xem đơn hàng của bạn
+          </Text>
+        </div>
+      )}
+
+      {/* ✅ DROPDOWN CHỌN ĐƠN HÀNG - CHỈ HIỂN THỊ NẾU CÓ ĐƠN HÀNG */}
+      {!location.state && storedOrders && storedOrders.length > 0 && (
+        <div style={{ marginTop: 12, marginBottom: 12, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+          <Text strong>Chọn đơn hàng:</Text>
+          <Select
+            value={selectedStoredKey}
+            onChange={(val) => {
+              console.log('Selected order key:', val);
+              setSelectedStoredKey(val);
+              const found = (storedOrders || []).find((s) => {
+                const sKey = s.key || s.id;
+                return String(sKey) === String(val);
+              });
+
+              console.log('Found order:', found);
+
+              if (found) {
+                setItemsState(found.items || []);
+                setTotalsState(found.totals || { subtotal: 0, discount: 0, shipping: 0, total: 0 });
+                setCurrentDelivery(found.customer || defaultDelivery);
+                setOrderStatus(found.status || null);
+                message.success('Đã chọn đơn hàng thành công');
+              }
+            }}
+            style={{ minWidth: 350 }}
+            options={(storedOrders || []).map((s) => ({
+              label: `${s.id || s.key} - ${s.customer?.name || 'N/A'}`,
+              value: s.key || s.id
+            }))}
+            placeholder="Chọn đơn hàng của bạn"
+            loading={isLoadingOrders}
+          />
+        </div>
+      )}
+
+      {/* ✅ THÔNG BÁO KHI KHÔNG CÓ ĐƠN HÀNG */}
+      {!location.state && (!storedOrders || storedOrders.length === 0) && currentUser && !isLoadingOrders && (
+        <div style={{ marginTop: 12, marginBottom: 12, padding: "12px 16px", backgroundColor: "#fff7e6", borderRadius: "6px", borderLeft: "4px solid #faad14" }}>
+          <Text type="warning" style={{ fontSize: 14 }}>
+            📦 Bạn chưa có đơn hàng nào. Vui lòng tạo đơn hàng mới từ trang sản phẩm.
+          </Text>
+        </div>
+      )}
+
+      {orderStatus && (
+        <div style={{ marginTop: 8, marginBottom: 8 }}>
+          <Text strong>Trạng thái: </Text>
+          <Tag color={orderStatus === 'delivered' ? 'green' : orderStatus === 'processing' ? 'gold' : 'volcano'} style={{ textTransform: 'capitalize' }}>
+            {orderStatus}
+          </Tag>
+        </div>
+      )}
+      <br />
       <EnvironmentFilled style={{ color: "green" }} /> <br />
 
       {/* ===== HÀNG 1: SHIP TO, PAYMENT, SUMMARY ===== */}
       <Row className="ship-to-payment" gutter={16}>
-        {/* "SHIP TO" (CẬP NHẬT JSX) */}
+        {/* SHIP TO */}
         <Col className="ship-to" span={8}>
           <Title level={3} className="ship-to-title">
-            {/* BỌC ICON VÀ TEXT TRONG SPAN */}
             <span className="title-content-wrapper">
               <TruckFilled style={{ color: "green", marginRight: "10px" }} />
               Ship To
@@ -213,7 +402,6 @@ const ReviewOrder = () => {
                 size="small"
                 className="delivery-descriptions"
               >
-                {/* (Descriptions.Item giữ nguyên) */}
                 <Descriptions.Item
                   label={
                     <>
@@ -271,10 +459,9 @@ const ReviewOrder = () => {
           </div>
         </Col>
 
-        {/* "PAYMENT" (CẬP NHẬT JSX) */}
+        {/* PAYMENT */}
         <Col className="payment-review" span={9}>
           <Title level={3} className="ship-to-title">
-            {/* BỌC ICON VÀ TEXT TRONG SPAN */}
             <span className="title-content-wrapper">
               <CreditCardOutlined
                 style={{ color: "green", marginRight: "10px" }}
@@ -292,9 +479,7 @@ const ReviewOrder = () => {
           </Title>
           <br />
           <div className="payment-review-div">
-            {/* (Nội dung payment giữ nguyên) */}
             <div className="payment-review-parent">
-              {/* (Nút change cũ đã bị xóa, vì đã đưa lên Title) */}
             </div>
             <div className="visa-title">
               <Title className="visa-name" level={3}>
@@ -316,24 +501,21 @@ const ReviewOrder = () => {
           </div>
         </Col>
 
-        {/* "SUMMARY" (CẬP NHẬT JSX) */}
+        {/* SUMMARY */}
         <Col className="summary-review" span={7}>
           <Title level={3} className="ship-to-title">
-            {/* BỌC ICON VÀ TEXT TRONG SPAN */}
             <span className="title-content-wrapper">
               <FileDoneOutlined
                 style={{ color: "green", marginRight: "10px" }}
               />
               Summary
             </span>
-            {/* Không có nút CHANGE ở đây */}
           </Title>
           <div className="summary-review-div">
-            {/* (Nội dung summary giữ nguyên) */}
             <div className="subtotal">
               <Text className="subtotal-text">Subtotal</Text>
               <Text className="subtotal-value">
-                ${totals.subtotal.toFixed(2)}
+                ${ (totalsState.subtotal || 0).toFixed(2) }
               </Text>
             </div>
             <div className="shipping">
@@ -341,20 +523,20 @@ const ReviewOrder = () => {
                 Discount(-20%)
               </Text>
               <Text className="shipping-value" style={{ color: "red" }}>
-                -${totals.discount.toFixed(2)}
+                -${ (totalsState.discount || 0).toFixed(2) }
               </Text>
             </div>
             <div className="shipping">
               <Text className="shipping-text">Shipping</Text>
               <Text className="shipping-value">
-                ${totals.shipping.toFixed(2)}
+                ${ (totalsState.shipping || 0).toFixed(2) }
               </Text>
             </div>
             <Divider />
             <div className="total">
               <Text className="total-text">Total</Text>
               <Text className="total-value-review">
-                ${totals.total.toFixed(2)}
+                ${ (totalsState.total || 0).toFixed(2) }
               </Text>
             </div>
             <div className="button-review-order">
@@ -377,7 +559,7 @@ const ReviewOrder = () => {
         </Col>
       </Row>
 
-      {/* ===== HÀNG 2: ORDER DETAIL (giữ nguyên) ===== */}
+      {/* ===== HÀNG 2: ORDER DETAIL ===== */}
       <div className="order-detail-review">
         <EnvironmentFilled className="icon-order-detail" /> <br />
         <Title level={3}>Order Detail</Title>
@@ -399,7 +581,6 @@ const ReviewOrder = () => {
                 </Text>
                 <Divider dashed style={{ borderWidth: "1px" }} />
 
-                {/* BẢNG SẢN PHẨM */}
                 <Table
                   columns={columns}
                   dataSource={processedData}
@@ -412,10 +593,10 @@ const ReviewOrder = () => {
         </Col>
       </Row>
 
-      {/* ===== MODAL CHANGE PAYMENT (giữ nguyên) ===== */}
+      {/* ===== MODAL CHANGE PAYMENT ===== */}
       <Modal
         title="Change Payment Method"
-        visible={isPaymentModalVisible}
+        open={isPaymentModalVisible}
         onOk={() => handlePaymentOk(paymentMethod)}
         onCancel={handlePaymentCancel}
         okText="Confirm"
@@ -432,10 +613,10 @@ const ReviewOrder = () => {
         </Radio.Group>
       </Modal>
 
-      {/* ===== MODAL CHANGE SHIP TO (giữ nguyên) ===== */}
+      {/* ===== MODAL CHANGE SHIP TO ===== */}
       <Modal
         title="Edit Shipping Information"
-        visible={isShipToModalVisible}
+        open={isShipToModalVisible}
         onOk={handleShipToOk}
         onCancel={handleShipToCancel}
         okText="Save Changes"
@@ -451,7 +632,6 @@ const ReviewOrder = () => {
             date: currentDelivery.date ? dayjs(currentDelivery.date) : null,
           }}
         >
-          {/* (Form inputs giữ nguyên) */}
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item

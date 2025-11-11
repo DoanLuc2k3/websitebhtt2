@@ -11,6 +11,7 @@ import {
   message,
   Breadcrumb as BreakCrum,
 } from "antd";
+import { saveSupportTicket } from "../API";
 
 import { HomeOutlined, EnvironmentOutlined, PhoneOutlined, MailOutlined } from "@ant-design/icons";
 const { Title, Text } = Typography;
@@ -88,11 +89,36 @@ const Contact = () => {
               <Form
                 className="form-contact"
                 layout="vertical"
-                onFinish={() =>
-                  message.success(
-                    "Message sent successfully! We will get back to you as soon as possible."
-                  )
-                }
+                onFinish={async (values) => {
+                  try {
+                    // Build ticket payload
+                    // Use the user's message as the ticket title (trimmed) so admin sees the content at-a-glance.
+                    const rawMsg = (values.message || '').trim();
+                    const firstLine = rawMsg.split(/\r?\n/)[0] || '';
+                    const MAX_TITLE = 80;
+                    const titleForTicket = firstLine.length > MAX_TITLE ? firstLine.slice(0, MAX_TITLE - 3) + '...' : firstLine || `Liên hệ: ${values.name}`;
+
+                    const payload = {
+                      // title is the message content (first line, trimmed)
+                      title: titleForTicket,
+                      customer: values.name,
+                      email: values.email,
+                      message: values.message,
+                      description: `Email: ${values.email}\n\n${values.message}`,
+                      source: 'Contact Form',
+                      priority: 'TRUNG BÌNH',
+                    };
+                    const saved = saveSupportTicket(payload);
+                    if (saved) {
+                      message.success('Message sent successfully! Support team has received your ticket.');
+                    } else {
+                      message.error('Failed to submit message. Please try again later.');
+                    }
+                  } catch (e) {
+                    console.error('Contact form submit failed', e);
+                    message.error('Failed to send message.');
+                  }
+                }}
               >
                 <Form.Item
                   label="Your Name"

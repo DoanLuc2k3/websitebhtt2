@@ -15,7 +15,7 @@ import {
   DownOutlined,
   LoginOutlined,
   ShoppingCartOutlined,
-  LogoutOutlined, 
+  LogoutOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/images/logo2.jpg";
@@ -82,7 +82,12 @@ const AppHeader = () => {
   const userMenu = {
     items: [
       { key: "1", label: "Profile", onClick: () => navigate("/profile") },
-      { key: "2", label: "Log out", onClick: handleLogout },
+      { key: "2", label: (
+          <span onClick={() => navigate('/revieworder')} style={{ cursor: 'pointer' }}>
+            Review Orders
+          </span>
+        ) },
+      { key: "3", label: "Log out", onClick: handleLogout },
     ],
   };
 

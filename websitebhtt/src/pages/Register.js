@@ -6,7 +6,8 @@ import {
   GoogleOutlined, LoginOutlined, FacebookFilled,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import { registerUser } from "../data/authService"; // Import hàm đã cập nhật
+import { registerUser, loginUser } from "../data/authService"; // Import hàm đã cập nhật
+import { useAuth } from "../context/AuthContext";
 import "../style/Login.css"; // Đảm bảo bạn có import CSS
 
 const { Title, Text, Link } = Typography;
@@ -14,6 +15,7 @@ const { Title, Text, Link } = Typography;
 const Register = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const auth = useAuth();
 
   const onFinish = async (values) => {
     const { username, password, phone } = values;
@@ -29,11 +31,23 @@ const Register = () => {
       // Gọi hàm register (lưu vào localStorage)
       const newUserData = await registerUser(payload);
       console.log("User mới đã được lưu vào localStorage:", newUserData);
-      message.success("Đăng ký thành công! Đang chuyển đến trang đăng nhập...");
 
-      setTimeout(() => {
-        navigate("/login");
-      }, 1200);
+      // Tự động đăng nhập sau khi đăng ký: dùng loginUser để xác thực từ nguồn localStorage
+      try {
+        const logged = await loginUser(username, password);
+        // Tạo token giả cho local login
+        const fakeToken = `local-token-${Date.now()}`;
+        // Gọi hàm login từ AuthContext
+        auth.login(fakeToken, logged);
+        message.success("Đăng ký thành công! Bạn đã được đăng nhập tự động.");
+        navigate('/');
+        return;
+      } catch (loginErr) {
+        // Nếu có lỗi khi tự động login, chuyển về trang login như fallback
+        console.warn('Auto-login failed after register', loginErr);
+        message.success("Đăng ký thành công! Vui lòng đăng nhập.");
+        setTimeout(() => navigate("/login"), 800);
+      }
     } catch (error) {
       message.error(error.message);
       setLoading(false); // Chỉ set false khi lỗi

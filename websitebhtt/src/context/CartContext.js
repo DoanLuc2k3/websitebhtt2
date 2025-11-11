@@ -7,8 +7,9 @@ const CartContext = createContext();
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
 
-  // Hàm thêm sản phẩm vào giỏ
-  const addToCart = (product) => {
+  // Hàm thêm sản phẩm vào giỏ (hỗ trợ quantity tuỳ chọn)
+  const addToCart = (product, qty = 1) => {
+    const quantityToAdd = Math.max(1, Number(qty) || 1);
     setCartItems((prevItems) => {
       // Kiểm tra xem sản phẩm đã có trong giỏ chưa
       const existingItem = prevItems.find(
@@ -16,15 +17,15 @@ export const CartProvider = ({ children }) => {
       );
 
       if (existingItem) {
-        // Nếu đã có, tăng số lượng lên 1
+        // Nếu đã có, tăng số lượng lên 'quantityToAdd'
         return prevItems.map((item) =>
           item.product.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: item.quantity + quantityToAdd }
             : item
         );
       } else {
-        // Nếu chưa có, thêm vào giỏ với số lượng là 1
-        return [...prevItems, { product: product, quantity: 1 }];
+        // Nếu chưa có, thêm vào giỏ với số lượng là quantityToAdd
+        return [...prevItems, { product: product, quantity: quantityToAdd }];
       }
     });
   };

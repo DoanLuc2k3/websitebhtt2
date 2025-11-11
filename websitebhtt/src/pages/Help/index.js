@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback} from 'react';
 import { useTranslation } from 'react-i18next';
-import { 
+import {
   Tabs, Layout, Typography, Table, Tag, Space, Card, Row, Col, Input, 
   Button, Modal, Form,  message, Switch, Alert, Select
 } from 'antd';
+import { getStoredSupportTickets, updateSupportTicket, getStoredStaffs } from '../../API';
 import { 
   ReloadOutlined, PlusOutlined, ClockCircleOutlined, SolutionOutlined, 
   AlertOutlined, EditOutlined, BookOutlined, SettingOutlined, UserOutlined,
@@ -78,28 +79,92 @@ const applyAutomationRules = (rawTickets) => {
 };
 const TicketManagementTab = () => {
   const { t } = useTranslation();
-  const [tickets, setTickets] = useState(mockTickets);
+    const [tickets, setTickets] = useState(mockTickets);
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState('');
-  const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
-  const [createTicketForm] = Form.useForm();
+    const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
+    const [createTicketForm] = Form.useForm();
+    const [processedAllTickets, setProcessedAllTickets] = useState([]);
+        const [tableFilters, setTableFilters] = useState({});
+            // helper to apply column filters and search keyword to a ticket list
+            const applyFiltersAndSearch = useCallback((data, filtersObj, keyword) => {
+                let out = (data || []).filter(t => 
+                    t.title.toLowerCase().includes((keyword || '').toLowerCase()) ||
+                    t.customer.toLowerCase().includes((keyword || '').toLowerCase())
+                );
+                if (filtersObj && filtersObj.status && filtersObj.status.length) {
+                    out = out.filter(x => filtersObj.status.includes(x.status));
+                }
+                if (filtersObj && filtersObj.priority && filtersObj.priority.length) {
+                    out = out.filter(x => filtersObj.priority.includes(x.priority));
+                }
+                return out;
+            }, []);
+    const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
+    const [selectedTicket, setSelectedTicket] = useState(null);
+    const [detailForm] = Form.useForm();
+    const [staffOptions, setStaffOptions] = useState([]);
   const fetchTickets = useCallback(() => {
     setLoading(true);
     setTimeout(() => {
-      let processedData = applyAutomationRules(mockTickets); 
+            // Merge stored support tickets (from Contact form) with mock tickets
+            let stored = [];
+            try { stored = getStoredSupportTickets() || []; } catch (e) { stored = []; }
 
-      let filtered = processedData.filter(t => 
-        t.title.toLowerCase().includes(searchKeyword.toLowerCase()) || 
-        t.customer.toLowerCase().includes(searchKeyword.toLowerCase())
-      );
-      setTickets(filtered);
+            // normalize stored items to expected shape if needed
+            const storedNormalized = (stored || []).map(s => ({
+                key: s.key || `${s.id}`,
+                id: s.id,
+                title: s.title || s.description || 'Contact',
+                status: s.status || 'Mới',
+                priority: s.priority || 'TRUNG BÌNH',
+                customer: s.customer || 'Guest',
+                assigned: s.assigned || 'Chưa gán',
+                updated: s.updated || Date.now(),
+                source: s.source || 'Contact Form',
+                SLA_due: s.SLA_due || (Date.now() + 6 * 3600000),
+                description: s.description || '',
+            }));
+
+                    let processedData = applyAutomationRules([...storedNormalized, ...mockTickets]); 
+
+                    // keep full processed list (for KPIs and re-filtering)
+                    setProcessedAllTickets(processedData);
+
+                    // derive the table-visible tickets using the shared helper
+                    const filtered = applyFiltersAndSearch(processedData, tableFilters, searchKeyword);
+                    setTickets(filtered);
       setLoading(false);
       message.success(`${t('help_btn_reload_rules')}: ${filtered.length} Tickets`);
     }, 500);
-  }, [searchKeyword, t]);
+    }, [searchKeyword, t, tableFilters, applyFiltersAndSearch]);
 
   useEffect(() => {
-    fetchTickets();
+        fetchTickets();
+
+        // Listen for tickets created via Contact form
+        const onSupportUpdated = () => fetchTickets();
+        window.addEventListener('support_tickets_updated', onSupportUpdated);
+        const onStorage = (ev) => { if (ev.key === 'support_tickets') fetchTickets(); };
+                window.addEventListener('storage', onStorage);
+
+                // load staff options
+                const loadStaffs = () => {
+                    try {
+                        const staffList = getStoredStaffs() || [];
+                        const active = (staffList || []).filter(s => s.status !== 'deleted' && s.status !== 'inactive');
+                        setStaffOptions(active.map(s => ({ id: s.id, name: s.fullName })));
+                    } catch (e) { setStaffOptions([]); }
+                };
+                loadStaffs();
+                const onStaffStorage = (ev) => { if (ev.key === 'app_staffs_v1') loadStaffs(); };
+                window.addEventListener('storage', onStaffStorage);
+
+                return () => {
+                        window.removeEventListener('support_tickets_updated', onSupportUpdated);
+                        window.removeEventListener('storage', onStorage);
+                        window.removeEventListener('storage', onStaffStorage);
+                };
   }, [fetchTickets]);
   const handleCreateTicket = () => {
     createTicketForm.validateFields().then(values => {
@@ -144,8 +209,30 @@ const TicketManagementTab = () => {
             );
         }
     },
-    { title: t('help_col_status'), dataIndex: 'status', key: 'status', render: (status) => getStatusTag(status, t) },
-    { title: t('help_col_priority'), dataIndex: 'priority', key: 'priority', render: (priority) => getPriorityTag(priority, t), sorter: (a, b) => a.priority.localeCompare(b.priority) },
+    { 
+        title: t('help_col_status'), 
+        dataIndex: 'status', 
+        key: 'status', 
+        render: (status) => getStatusTag(status, t),
+        filters: [
+            { text: 'Mới', value: 'Mới' },
+            { text: 'Đang Xử lý', value: 'Đang Xử lý' },
+            { text: 'Chờ Phản hồi', value: 'Chờ Phản hồi' },
+            { text: 'Đã Đóng', value: 'Đã Đóng' },
+        ],
+    },
+    { 
+        title: t('help_col_priority'), 
+        dataIndex: 'priority', 
+        key: 'priority', 
+        render: (priority) => getPriorityTag(priority, t), 
+        sorter: (a, b) => a.priority.localeCompare(b.priority),
+        filters: [
+            { text: 'CAO', value: 'CAO' },
+            { text: 'TRUNG BÌNH', value: 'TRUNG BÌNH' },
+            { text: 'THẤP', value: 'THẤP' },
+        ],
+    },
     { title: t('help_col_customer'), dataIndex: 'customer', key: 'customer' },
     { 
         title: t('help_col_assigned'), 
@@ -159,20 +246,59 @@ const TicketManagementTab = () => {
       key: 'action',
       render: (_, record) => (
         <Space size="middle">
-          <Button size="small" type="link">{t('help_action_details')}</Button>
-          <Button size="small" type="link" danger>{t('help_action_close')}</Button>
+                    <Button size="small" type="link" onClick={() => showDetailModal(record)}>{t('help_action_details')}</Button>
+                                <Button size="small" type="link" danger onClick={async () => {
+                                    try {
+                                        await updateSupportTicket(record.key || record.id, { status: 'Đã Đóng' });
+                                        message.success(t('help_msg_ticket_closed', { id: record.id }));
+                                        fetchTickets();
+                                    } catch (e) {
+                                        console.error('Close ticket failed', e);
+                                        message.error(t('help_msg_ticket_close_failed'));
+                                    }
+                                }}>{t('help_action_close')}</Button>
         </Space>
       ),
     },
   ];
-  const myTickets = tickets.filter(t => t.assigned === MOCK_CURRENT_USER);
-  const myNewTickets = myTickets.filter(t => t.status === 'Mới').length;
-  const myInProgressTickets = myTickets.filter(t => t.status === 'Đang Xử lý').length;
-  const totalHighPriority = tickets.filter(t => t.priority === 'CAO').length;
+
+    // handle table filters / sorter changes
+    const handleTableChange = (pagination, filters, sorter) => {
+        // store filters in state so fetchTickets (and other logic) can react
+        setTableFilters(filters || {});
+        // compute visible tickets immediately from the processed all tickets if available
+        try {
+            const visible = applyFiltersAndSearch(processedAllTickets, filters || {}, searchKeyword);
+            setTickets(visible);
+        } catch (e) {
+            // fallback: just set the filters and let fetchTickets run
+            setTableFilters(filters || {});
+        }
+    };
+
+    // Show detail modal for a ticket
+    const showDetailModal = (record) => {
+        setSelectedTicket(record);
+        detailForm.setFieldsValue({
+            assigned: record.assigned === 'Chưa gán' ? '' : record.assigned,
+            status: record.status,
+        });
+        setIsDetailModalVisible(true);
+    };
+
+    // ✅ KPI HIỂN THỊ TOÀN BỘ TICKETS (KHÔNG PHẢI CHỈ CỦA TÔI)
+    const allProcessedTickets = processedAllTickets || [];
+    
+    // Tính toán KPI từ toàn bộ tickets
+    const newTicketsCount = allProcessedTickets.filter(t => t.status === 'Mới').length;
+    const inProgressTicketsCount = allProcessedTickets.filter(t => t.status === 'Đang Xử lý').length;
+    const pendingTicketsCount = allProcessedTickets.filter(t => t.status === 'Chờ Phản hồi').length;
+    const totalHighPriority = allProcessedTickets.filter(t => t.priority === 'CAO').length;
+
   return (
     <>
         <Alert
-            message={<Text strong>{t('help_dashboard_welcome', { user: MOCK_CURRENT_USER, count: myTickets.length })}</Text>}
+            message={<Text strong>{t('help_dashboard_welcome', { user: MOCK_CURRENT_USER, count: allProcessedTickets.length })}</Text>}
             type="info"
             showIcon
             style={{ marginBottom: 24 }}
@@ -180,26 +306,26 @@ const TicketManagementTab = () => {
       
         <Row gutter={16} style={{ marginBottom: 24 }}>
             <Col span={6}>
-            <Card title={t('help_kpi_new_mine')} bordered={false} hoverable style={{ borderLeft: '5px solid #1890ff' }}>
+            <Card title="Ticket Mới" bordered={false} hoverable style={{ borderLeft: '5px solid #1890ff' }}>
                 <AlertOutlined style={{ fontSize: 24, color: '#1890ff' }} />
-                <span style={{ fontSize: 28, fontWeight: 'bold', marginLeft: 16 }}>{myNewTickets}</span>
+                <span style={{ fontSize: 28, fontWeight: 'bold', marginLeft: 16 }}>{newTicketsCount}</span>
             </Card>
             </Col>
             <Col span={6}>
-            <Card title={t('help_kpi_in_progress_mine')} bordered={false} hoverable style={{ borderLeft: '5px solid #faad14' }}>
+            <Card title="Đang Xử lý" bordered={false} hoverable style={{ borderLeft: '5px solid #faad14' }}>
                 <SolutionOutlined style={{ fontSize: 24, color: '#faad14' }} />
-                <span style={{ fontSize: 28, fontWeight: 'bold', marginLeft: 16 }}>{myInProgressTickets}</span>
+                <span style={{ fontSize: 28, fontWeight: 'bold', marginLeft: 16 }}>{inProgressTicketsCount}</span>
             </Card>
             </Col>
             <Col span={6}>
-            <Card title={t('help_kpi_avg_response')} bordered={false} hoverable style={{ borderLeft: '5px solid #52c41a' }}>
+            <Card title="TB Phản hồi" bordered={false} hoverable style={{ borderLeft: '5px solid #52c41a' }}>
                 <ClockCircleOutlined style={{ fontSize: 24, color: '#52c41a' }} />
-                <span style={{ fontSize: 28, fontWeight: 'bold', marginLeft: 16 }}>2.5h</span>
+                <span style={{ fontSize: 28, fontWeight: 'bold', marginLeft: 16 }}>{pendingTicketsCount}</span>
             </Card>
             </Col>
             <Col span={6}>
-            <Card title={t('help_kpi_urgent_total')} bordered={false} hoverable style={{ borderLeft: '5px solid #f5222d' }}>
-                <ReloadOutlined style={{ fontSize: 24, color: '#f5222d' }} />
+            <Card title="Khẩn cấp (Tổng)" bordered={false} hoverable style={{ borderLeft: '5px solid #f5222d' }}>
+                <AlertOutlined style={{ fontSize: 24, color: '#f5222d' }} />
                 <span style={{ fontSize: 28, fontWeight: 'bold', marginLeft: 16 }}>{totalHighPriority}</span>
             </Card>
             </Col>
@@ -223,6 +349,7 @@ const TicketManagementTab = () => {
             loading={loading}
             pagination={{ pageSize: 10 }}
             scroll={{ x: 'max-content' }} 
+            onChange={handleTableChange}
         />
 
         <Modal
@@ -413,6 +540,66 @@ const TicketManagementTab = () => {
                 </Form.Item>
             </Form>
         </Modal>
+        <Modal
+            title={<Space><UserOutlined style={{ color: '#1890ff' }}/> {t('help_modal_ticket_detail')}</Space>}
+            open={isDetailModalVisible}
+            onCancel={() => { setIsDetailModalVisible(false); setSelectedTicket(null); detailForm.resetFields(); }}
+            onOk={async () => {
+                try {
+                    const values = await detailForm.validateFields();
+                    const changes = {
+                        assigned: values.assigned || 'Chưa gán',
+                        status: values.status || selectedTicket?.status || 'Mới',
+                    };
+                    await updateSupportTicket(selectedTicket.key || selectedTicket.id, changes);
+                    message.success(t('help_msg_ticket_updated'));
+                    setIsDetailModalVisible(false);
+                    setSelectedTicket(null);
+                    detailForm.resetFields();
+                    fetchTickets();
+                } catch (e) {
+                    console.error('Save ticket detail failed', e);
+                    message.error(t('help_msg_ticket_update_failed'));
+                }
+            }}
+            width={720}
+        >
+            {selectedTicket ? (
+                <Form form={detailForm} layout="vertical" initialValues={{
+                    assigned: selectedTicket.assigned === 'Chưa gán' ? '' : selectedTicket.assigned,
+                    status: selectedTicket.status,
+                }}>
+                    <Form.Item label={t('help_col_id')}>
+                        <Text strong>{selectedTicket.id}</Text>
+                    </Form.Item>
+                    <Form.Item label={t('help_col_title')}>
+                        <Text>{selectedTicket.title}</Text>
+                    </Form.Item>
+                    <Form.Item label={t('help_col_customer')}>
+                        <Text>{selectedTicket.customer}</Text>
+                    </Form.Item>
+                    <Form.Item label="Email liên hệ">
+                        <Text>{selectedTicket.contactEmail || ''}</Text>
+                    </Form.Item>
+                    <Form.Item label={t('help_form_description_label')}>
+                        <Text>{selectedTicket.description}</Text>
+                    </Form.Item>
+                    <Form.Item name="assigned" label={t('help_form_assigned_label')}>
+                        <Select allowClear placeholder={t('help_form_assigned_auto')}>
+                            {staffOptions.map(s => <Select.Option key={s.id} value={s.name}>{s.name}</Select.Option>)}
+                        </Select>
+                    </Form.Item>
+                    <Form.Item name="status" label={t('help_col_status')}>
+                        <Select>
+                            <Select.Option value="Mới">Mới</Select.Option>
+                            <Select.Option value="Đang Xử lý">Đang Xử lý</Select.Option>
+                            <Select.Option value="Chờ Phản hồi">Chờ Phản hồi</Select.Option>
+                            <Select.Option value="Đã Đóng">Đã Đóng</Select.Option>
+                        </Select>
+                    </Form.Item>
+                </Form>
+            ) : null}
+        </Modal>
     </>
   );
 };
@@ -434,7 +621,6 @@ const KnowledgeBaseTab = () => {
     { title: t('help_kb_col_cr_content'), dataIndex: 'content', key: 'content', render: text => <Text ellipsis>{text}</Text> },
     { title: t('help_col_actions'), key: 'action', width: 100, render: () => (<Space><Button size="small" icon={<EditOutlined />} type="link" /></Space>) },
   ];
-
   return (
     <>
         <Tabs 
@@ -593,7 +779,6 @@ const AutomationSettingsTab = () => {
         setAutomationRules(updatedRules);
         message.success('Trạng thái quy tắc đã được cập nhật!');
     };
-
     const rulesColumns = [
         { 
             title: t('help_automation_col_name'), 

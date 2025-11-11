@@ -1,10 +1,9 @@
 // Tên file: src/pages/Login.js
-// Đã thêm className="form-item-no-style" vào 3 chỗ
-// ĐÃ CẬP NHẬT: hàm login() để lưu cả thông tin user
+// ĐÃ CẬP NHẬT: Lưu currentUser vào localStorage
 
 import React, { useState } from "react";
 import {
-  Typography, Form, Input, Button, Row, Col,  message,
+  Typography, Form, Input, Button, Row, Col, message,
 } from "antd";
 import {
   GoogleOutlined, LoginOutlined, FacebookFilled,
@@ -26,13 +25,39 @@ const Login = () => {
     setLoading(true);
 
     try {
+      console.log('📝 Login attempt with:', { username, password });
       const userData = await loginUser(username, password);
+      console.log('📝 Login response:', userData);
+      
       message.success(`Chào mừng trở lại, ${userData.firstName || userData.username}!`);
       
-      // === THAY ĐỔI QUAN TRỌNG Ở ĐÂY ===
+      // ✅ LƯU CURRENTUSER VÀO LOCALSTORAGE
+      const currentUserInfo = {
+        id: userData.id || Date.now(),
+        name: userData.firstName || userData.fullName || userData.username || 'User',
+        email: userData.email || `${userData.username}@example.com`,
+        phone: userData.phone || 'N/A',
+        username: userData.username,
+        role: userData.role || 'user',
+      };
+
+      console.log('🔍 About to save user info:', currentUserInfo);
+      localStorage.setItem('currentUser', JSON.stringify(currentUserInfo));
+      localStorage.setItem('authToken', userData.token);
+
+      // Verify saved
+      const checkSaved = localStorage.getItem('currentUser');
+      console.log('✅ Verified saved in localStorage:', checkSaved);
+
+      // Dispatch event để các component khác biết user đã login
+      window.dispatchEvent(new Event('user_logged_in'));
+
+      console.log('✅ Saved User Info:', currentUserInfo);
+      console.log('📦 All localStorage:', Object.keys(localStorage).map(k => `${k}: ${localStorage.getItem(k)}`));
+      // =======================================
+
       // Gửi cả token và userData vào hàm login của Context
       login(userData.token, userData); 
-      // ===============================
 
       if (userData.role === 'admin') {
         navigate("/admin");
@@ -132,7 +157,7 @@ const Login = () => {
 
               <Form.Item className="dont-have form-item-no-style" style={{ marginTop: '20px' }}>
                 <Text className="dont-have-account">
-                  Don’t have an account?{" "}
+                  Don't have an account?{" "}
                   <Link href="/register">Register now</Link>
                 </Text>
               </Form.Item>

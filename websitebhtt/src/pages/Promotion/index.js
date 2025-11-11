@@ -17,7 +17,7 @@ import { useTranslation } from "react-i18next";
 // CHỈ IMPORT MỘT FILE SERVICE CHUNG: discountService
 import { 
     fetchCoupons, createCoupon, deleteCoupon, updateCoupon,
-    fetchShippingRules, createShippingRule, updateShippingRule, deleteShippingRule // <-- Lấy tất cả hàm từ đây
+    fetchShippingRules, createShippingRule,
 } from '../../data/discountService'; 
 
 const { Content } = Layout;

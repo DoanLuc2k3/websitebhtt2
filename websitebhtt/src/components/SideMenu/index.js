@@ -1,10 +1,5 @@
 import {
-    AppstoreOutlined,
-    ShopOutlined,
-    ShoppingCartOutlined,
-    UserOutlined,
-    TeamOutlined,
-    TagOutlined,
+ 
 } from "@ant-design/icons";
 import { Menu } from "antd";
 import { useEffect, useState } from "react";
@@ -76,13 +71,17 @@ function SideMenu() {
                     color: white !important;
                 }
 
-                /* Hiệu ứng hover */
+                /* Hiệu ứng hover - GIỮ NGUYÊN MÀU ICON */
                 .ant-menu-dark .ant-menu-item:not(.ant-menu-item-selected):hover {
                     background: linear-gradient(135deg, #f51010ff 0%, #764ba2 100%) !important;
                 }
-                .ant-menu-dark .ant-menu-item:not(.ant-menu-item-selected):hover .ant-menu-title-content,
-                .ant-menu-dark .ant-menu-item:not(.ant-menu-item-selected):hover .anticon {
+                .ant-menu-dark .ant-menu-item:not(.ant-menu-item-selected):hover .ant-menu-title-content {
                     color: #fff !important;
+                }
+                /* ❌ KHÔNG OVERRIDE MÀU ICON - GIỮ LẠI MÀU GỐC */
+                .ant-menu-dark .ant-menu-item:not(.ant-menu-item-selected):hover .anticon,
+                .ant-menu-dark .ant-menu-item:not(.ant-menu-item-selected):hover svg {
+                    /* Không set color ở đây để giữ màu gốc */
                 }
 
                 .ant-menu-dark .ant-menu-item .ant-menu-title-content {
@@ -153,7 +152,7 @@ function SideMenu() {
                         label: (
                             <div className="menu-item-wrapper">
                                 <div className="menu-icon-wrapper">
-                                    <AppstoreOutlined style={{ color: "green" }} />
+                                    <span style={{ fontSize: '18px' }}>🏠</span>
                                 </div>
                                 <span className="menu-text">{t("overview") || "Tổng quan"}</span>
                             </div>
@@ -165,7 +164,7 @@ function SideMenu() {
                         label: (
                             <div className="menu-item-wrapper">
                                 <div className="menu-icon-wrapper">
-                                    <ShopOutlined style={{ color: "#fa8c16" }} />
+                                  <span style={{ fontSize: '18px' }}>📦</span>
                                 </div>
                                 <span className="menu-text">{t("inventory") || "Quản lý kho"}</span>
                             </div>
@@ -177,7 +176,7 @@ function SideMenu() {
                         label: (
                             <div className="menu-item-wrapper">
                                 <div className="menu-icon-wrapper">
-                                    <ShoppingCartOutlined style={{ color: "red" }} />
+                                    <span style={{ fontSize: '18px' }}>🛒</span>
                                 </div>
                                 <span className="menu-text">{t("orders") || "Đơn hàng"}</span>
                             </div>
@@ -189,7 +188,7 @@ function SideMenu() {
                         label: (
                             <div className="menu-item-wrapper">
                                 <div className="menu-icon-wrapper">
-                                    <TeamOutlined style={{ color: "Teal" }} />
+                                   <span style={{ fontSize: '18px' }}>👨🏻‍💼</span>
                                 </div>
                                 <span className="menu-text">{t("staffs") || "Nhân viên"}</span>
                             </div>
@@ -201,7 +200,7 @@ function SideMenu() {
                         label: (
                             <div className="menu-item-wrapper">
                                 <div className="menu-icon-wrapper">
-                                    <UserOutlined style={{ color: "#f7bc0cff" }} />
+                                    <span style={{ fontSize: '18px' }}>🧏‍♂️</span>
                                 </div>
                                 <span className="menu-text">{t("customers") || "Khách hàng"}</span>
                             </div>
@@ -213,7 +212,7 @@ function SideMenu() {
                         label: (
                             <div className="menu-item-wrapper">
                                 <div className="menu-icon-wrapper">
-                                    <TagOutlined style={{ color: "Maroon" }} />
+                                  <span style={{ fontSize: '18px' }}>🎁</span>
                                 </div>
                                 <span className="menu-text">{t("marketing") || "Marketing & Khuyến mãi"}</span>
                             </div>

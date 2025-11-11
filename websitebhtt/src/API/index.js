@@ -257,3 +257,138 @@ export function removeLocalProduct(id) {
   }
   return true;
 }
+
+// ------------------ Support Tickets (Contact -> Admin) ------------------
+const SUPPORT_TICKETS_KEY = 'support_tickets';
+
+function readStoredSupportTickets() {
+  try {
+    const raw = localStorage.getItem(SUPPORT_TICKETS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    console.error('Failed to read support tickets', e);
+    return [];
+  }
+}
+
+function writeStoredSupportTickets(list) {
+  try {
+    localStorage.setItem(SUPPORT_TICKETS_KEY, JSON.stringify(list || []));
+  } catch (e) {
+    console.error('Failed to write support tickets', e);
+  }
+}
+
+export function getStoredSupportTickets() {
+  return readStoredSupportTickets();
+}
+
+export function saveSupportTicket(payload) {
+  try {
+    const list = readStoredSupportTickets();
+    const idNum = 1000 + (list.length || 0) + 1;
+    const now = Date.now();
+    const newTicket = {
+      key: `${now}`,
+      id: `#${idNum}`,
+      title: payload.title || `Contact from ${payload.customer || 'Guest'}`,
+      status: 'Mới',
+      priority: payload.priority || 'TRUNG BÌNH',
+      customer: payload.customer || (payload.name || 'Guest'),
+      assigned: payload.assigned || 'Chưa gán',
+      updated: now,
+      source: payload.source || 'Contact Form',
+      SLA_due: now + (payload.priority === 'CAO' ? 2 * 3600000 : payload.priority === 'TRUNG BÌNH' ? 6 * 3600000 : 24 * 3600000),
+      description: payload.description || payload.message || '',
+      contactEmail: payload.email || '',
+      contactPhone: payload.phone || '',
+      _isLocal: true,
+    };
+
+    list.unshift(newTicket);
+    writeStoredSupportTickets(list);
+
+    try { window.dispatchEvent(new Event('support_tickets_updated')); } catch (e) {}
+    return newTicket;
+  } catch (e) {
+    console.error('Failed to save support ticket', e);
+    return null;
+  }
+}
+
+export function updateSupportTicket(id, changes = {}) {
+  try {
+    const list = readStoredSupportTickets();
+    const idx = list.findIndex((t) => t.key === id || t.id === id || `${t.id}` === `${id}` || `${t.key}` === `${id}`);
+    if (idx === -1) return null;
+    const updated = { ...list[idx], ...changes, updated: Date.now() };
+    list[idx] = updated;
+    writeStoredSupportTickets(list);
+    try { window.dispatchEvent(new Event('support_tickets_updated')); } catch (e) {}
+    return updated;
+  } catch (e) {
+    console.error('Failed to update support ticket', e);
+    return null;
+  }
+}
+
+// Staffs helper (reads same storage used by Staffs page)
+export function getStoredStaffs() {
+  try {
+    const raw = localStorage.getItem('app_staffs_v1');
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    console.error('Failed to read stored staffs', e);
+    return [];
+  }
+}
+
+// ------------------ Orders persistence ------------------
+const STORED_ORDERS_KEY = 'app_orders_v1';
+
+function readStoredOrders() {
+  try {
+    const raw = localStorage.getItem(STORED_ORDERS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    console.error('Failed to read stored orders', e);
+    return [];
+  }
+}
+
+function writeStoredOrders(list) {
+  try {
+    localStorage.setItem(STORED_ORDERS_KEY, JSON.stringify(list || []));
+  } catch (e) {
+    console.error('Failed to write stored orders', e);
+  }
+}
+
+export function getStoredOrders() {
+  return readStoredOrders();
+}
+
+export function saveOrder(payload) {
+  try {
+    const list = readStoredOrders();
+    const now = Date.now();
+    const newOrder = {
+      id: `ORD-${now}`,
+      key: `ORD-${now}`,
+      items: payload.items || [],
+      totals: payload.totals || {},
+      delivery: payload.delivery || {},
+      customer: payload.customer || { name: 'Guest', email: '' },
+      status: payload.status || 'processing',
+      createdAt: now,
+      _isLocal: true,
+    };
+    list.unshift(newOrder);
+    writeStoredOrders(list);
+    try { window.dispatchEvent(new Event('orders_updated')); } catch (e) {}
+    return newOrder;
+  } catch (e) {
+    console.error('Failed to save order', e);
+    return null;
+  }
+}

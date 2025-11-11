@@ -17,7 +17,8 @@ import {
     Image,
     Badge,
 } from "antd";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { getStoredOrders } from '../../API';
 import {
     ShoppingCartOutlined,
     SearchOutlined,
@@ -127,19 +128,20 @@ function Orders() {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    useEffect(() => {
-        setLoading(true);
-        
-        Promise.all([getOrders(), fetchCustomers()]).then(([ordersRes, customers]) => {
+    // central loader so we can refresh on events
+    const loadOrders = useCallback(async () => {
+        try {
+            setLoading(true);
+            const [ordersRes, customers] = await Promise.all([getOrders(), fetchCustomers()]);
             setCustomerOptions(customers.map(c => ({ value: c.fullName, label: c.fullName, detail: c })));
 
             const customerCount = customers.length;
-            
-            const ordersWithCustomers = ordersRes.products.map((item, index) => {
+
+            const ordersWithCustomers = (ordersRes.products || []).map((item, index) => {
                 const total = item.price * item.quantity;
                 let status;
-                
-                if (item.id % 3 === 0) status = "delivered"; 
+
+                if (item.id % 3 === 0) status = "delivered";
                 else if (item.id % 3 === 1) status = "processing";
                 else status = "cancelled";
 
@@ -149,23 +151,66 @@ function Orders() {
                     email: "guest@example.com",
                     phone: "N/A"
                 };
-              
+
                 return {
                     ...item,
                     total: total,
                     status: status,
-                    date: generateRandomDate(i18n), 
-                    customer: customerInfo.fullName, 
+                    date: generateRandomDate(i18n),
+                    customer: customerInfo.fullName,
                     customerDetail: customerInfo,
                     key: item.id.toString(),
                 };
             });
-            
-            setDataSource(ordersWithCustomers);
-            setFilteredData(ordersWithCustomers);
+
+            // Merge stored orders from localStorage (admin view)
+            const stored = (getStoredOrders && getStoredOrders()) || [];
+            const storedMapped = (stored || []).map((s, idx) => ({
+                id: s.id,
+                title: s.items && s.items[0] ? s.items[0].title : 'Order',
+                title_vi: s.items && s.items[0] ? s.items[0].title : 'Order',
+                price: s.totals ? s.totals.total : 0,
+                quantity: s.items ? s.items.reduce((a,b)=>a+b.quantity,0) : 1,
+                thumbnail: s.items && s.items[0] ? s.items[0].thumbnail || 'https://via.placeholder.com/60' : 'https://via.placeholder.com/60',
+                total: s.totals ? s.totals.total : 0,
+                status: s.status || 'processing',
+                date: new Date(s.createdAt || Date.now()).toLocaleDateString(i18n.language),
+                customer: s.customer ? s.customer.name : 'Khách Lẻ',
+                customerDetail: s.customer || {},
+                key: s.key || (`stored-${idx}`),
+            }));
+
+            const merged = [...storedMapped, ...ordersWithCustomers];
+            setDataSource(merged);
+            setFilteredData(merged);
+        } catch (err) {
+            console.error('Failed to load orders', err);
+        } finally {
             setLoading(false);
-        });
+        }
     }, [i18n]);
+
+    useEffect(() => {
+        loadOrders();
+    }, [loadOrders]);
+
+    // Refresh when orders_updated event fired or localStorage changes
+    useEffect(() => {
+        const onOrdersUpdated = () => {
+            loadOrders();
+        };
+        const onStorage = (e) => {
+            if (!e) return;
+            if (e.key === 'app_orders_v1') loadOrders();
+        };
+
+        window.addEventListener('orders_updated', onOrdersUpdated);
+        window.addEventListener('storage', onStorage);
+        return () => {
+            window.removeEventListener('orders_updated', onOrdersUpdated);
+            window.removeEventListener('storage', onStorage);
+        };
+    }, [loadOrders]);
 
     const getTranslatedStatus = (statusKey) => t(`orders_tag_${statusKey}`);
 
@@ -251,6 +296,7 @@ function Orders() {
         setEditingKey(record.key);
     };
 
+    // Persist inline edits (status updates) to localStorage so ReviewOrder page sees them
     const save = async (key) => {
         try {
             const row = await inlineForm.validateFields();
@@ -262,7 +308,46 @@ function Orders() {
                 newData.splice(index, 1, { ...item, ...row });
                 setDataSource(newData);
                 setEditingKey('');
-                message.success(t('orders_msg_update_success', { key: key })); 
+                message.success(t('orders_msg_update_success', { key: key }));
+
+                // Try to persist into stored orders (localStorage key used by API helpers)
+                try {
+                    const stored = (getStoredOrders && getStoredOrders()) || [];
+
+                    const matchedKey = (s) => {
+                        const sKey = s && (s.key || s.id || (`stored-${s.id}`));
+                        return sKey && sKey.toString() === key.toString();
+                    };
+
+                    let updatedStored = stored.map((s) => (matchedKey(s) ? { ...s, status: row.status } : s));
+
+                    // If no stored order matched, create a lightweight stored order to preserve status override
+                    const found = updatedStored.some(matchedKey);
+                    if (!found) {
+                        const rec = newData[index];
+                        const newStored = {
+                            id: rec.id || `ORD-${Date.now()}`,
+                            key: rec.key || `ORD-${Date.now()}`,
+                            items: rec.items || [{ title: rec.title, price: rec.price, quantity: rec.quantity, thumbnail: rec.thumbnail }],
+                            totals: { total: rec.total || (rec.price || 0) * (rec.quantity || 1) },
+                            customer: rec.customerDetail || { name: rec.customer || 'Khách Lẻ' },
+                            status: row.status,
+                            createdAt: Date.now(),
+                            _isLocal: true,
+                        };
+                        updatedStored.unshift(newStored);
+                    }
+
+                    // write back to localStorage
+                    try {
+                        localStorage.setItem('app_orders_v1', JSON.stringify(updatedStored || []));
+                        try { window.dispatchEvent(new Event('orders_updated')); } catch (e) {}
+                    } catch (e) {
+                        console.error('Failed to persist order status', e);
+                    }
+                } catch (e) {
+                    console.error('Error while saving status to stored orders', e);
+                }
             } else {
                 setEditingKey('');
             }
@@ -312,9 +397,9 @@ function Orders() {
                 title: t("orders_col_product"), 
                 dataIndex: i18n.language === 'vi' ? "title_vi" : "title", 
                 width: screenSize === 'xs' ? 150 : screenSize === 'sm' ? 180 : 240,
-                render: (text, record) => (
+                render: (text, record, index) => (
                     <Flex gap={10} align="flex-start" onClick={() => handleQuickView(record)} style={{ cursor: 'pointer' }}>
-                        <Badge.Ribbon text={`#${record.id}`} color="cyan">
+                        <Badge.Ribbon text={`#${index + 1}`} color="cyan">
                             <Image
                                 src={record.thumbnail}
                                 alt={text}
@@ -550,7 +635,7 @@ function Orders() {
                         size={screenSize === 'xs' ? 'small' : 'middle'}
                         columns={columns}
                         dataSource={filteredData}
-                        rowKey="id"
+                        rowKey="key"
                         pagination={{ 
                             position: ["bottomCenter"], 
                             pageSize: screenSize === 'xs' ? 3 : 5, 
@@ -618,7 +703,7 @@ function Orders() {
             </Modal>
             
             <Drawer
-                title={<Space><EyeOutlined /> {t("orders_tip_view_detail")} #{quickViewOrder?.id}</Space>}
+                title={<Space><EyeOutlined /> {t("orders_tip_view_detail")}</Space>}
                 placement="right"
                 onClose={() => setIsDrawerVisible(false)}
                 open={isDrawerVisible}

@@ -17,8 +17,10 @@ import {
   Descriptions,
 } from "antd";
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
+import { saveOrder } from "../API";
 
 const { Title, Text } = Typography;
 
@@ -41,10 +43,16 @@ const Checkout = () => {
   const [paymentForm] = Form.useForm();
 
   const { cartItems, clearCart } = useCart();
+  const { currentUser, isLoggedIn } = useAuth();
+  const location = useLocation();
+  const buyNowItems = (location && location.state && location.state.buyNowItems) || null;
+
+  // Use buyNowItems (passed from product listing) if present; otherwise use cartItems
+  const itemsForOrder = buyNowItems && buyNowItems.length > 0 ? buyNowItems : cartItems;
 
   // Logic tính toán (giữ nguyên)
-  const subtotal = cartItems.reduce(
-    (acc, item) => acc + item.product.price * item.quantity,
+  const subtotal = itemsForOrder.reduce(
+    (acc, item) => acc + (item.product.price || 0) * item.quantity,
     0
   );
   const discount = subtotal * 0.2;
@@ -74,7 +82,7 @@ const Checkout = () => {
       // ===================================
 
       // LƯU LẠI TẤT CẢ THÔNG TIN
-      setOrderedItems([...cartItems]); // Lưu sản phẩm
+      setOrderedItems([...itemsForOrder]); // Lưu sản phẩm
       setOrderTotals({
         // Lưu tổng tiền
         total: total,
@@ -85,7 +93,21 @@ const Checkout = () => {
       setDeliveryInfo(allFormInfo); // Lưu thông tin giao hàng (với date đã là string)
 
       setShowSuccess(true);
-      clearCart(); // Xóa giỏ hàng
+      // Persist order to storage so admin can see it
+      try {
+        const orderPayload = {
+          items: itemsForOrder.map(ci => ({ id: ci.product.id, title: ci.product.title, price: ci.product.price, quantity: ci.quantity, thumbnail: ci.product.thumbnail })),
+          totals: { total, discount, shipping: deliveryFee, subtotal },
+          delivery: allFormInfo,
+          customer: isLoggedIn && currentUser ? { name: currentUser.firstName ? `${currentUser.firstName} ${currentUser.lastName || ''}`.trim() : currentUser.email || 'User', email: currentUser.email } : { name: allFormInfo.name || 'Guest', email: allFormInfo.email || '' },
+          status: 'processing',
+        };
+        saveOrder(orderPayload);
+      } catch (e) {
+        console.error('save order failed', e);
+      }
+      // Only clear global cart if there were real cart items (don't clear when using buy-now state only)
+      if (cartItems && cartItems.length > 0) clearCart();
     } catch (errorInfo) {
       console.log("Validation Failed:", errorInfo);
     }
@@ -262,7 +284,7 @@ const Checkout = () => {
           </Title>
           <Form className="checkout-col-right-form">
             {/* ... (Hiển thị sản phẩm động - giữ nguyên) ... */}
-            {cartItems.map((item) => (
+            {itemsForOrder.map((item) => (
               <Row
                 className="order-summary-row"
                 gutter={16}
@@ -337,7 +359,7 @@ const Checkout = () => {
               type="primary"
               className="confirm-order-button"
               onClick={handleConfirmOrder}
-              disabled={cartItems.length === 0}
+              disabled={!(itemsForOrder && itemsForOrder.length > 0)}
             >
               Confirm Order
             </Button>
